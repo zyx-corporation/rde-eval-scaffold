@@ -22,6 +22,7 @@ UNCERTAINTY_MARKERS = (
 
 RESPONSIBILITY_MARKERS = (
     "organization",
+    "organizational",
     "human",
     "institution",
     "approval",
@@ -38,6 +39,7 @@ THEORY_MARKERS = (
     "semantic",
     "theoretical",
     "audit",
+    "audits",
     "design philosophy",
     "意味変化",
     "意味",
@@ -98,9 +100,9 @@ def classify_sample(sample: RdeSample) -> EvaluationResult:
 
 
 def _label_from_flags(risk_flags: list[str]) -> tuple[RdeLabel, Criticality]:
-    if "responsibility_shift" in risk_flags and "institutional_implication_loss" in risk_flags:
+    if "theoretical_reduction" in risk_flags:
         return RdeLabel.CRITICAL_DISTORTION, Criticality.HIGH
-    if "theoretical_reduction" in risk_flags and len(risk_flags) >= 2:
+    if "responsibility_shift" in risk_flags and "institutional_implication_loss" in risk_flags:
         return RdeLabel.CRITICAL_DISTORTION, Criticality.HIGH
     if risk_flags:
         return RdeLabel.SUSPICIOUS_DRIFT, Criticality.MEDIUM
