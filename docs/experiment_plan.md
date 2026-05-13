@@ -4,7 +4,7 @@
 
 The pilot study tests whether RDE labels and risk flags can be applied consistently to source-output meaning changes.
 
-This is not intended to validate RDE at scale. It is intended to test the usability of the taxonomy and identify annotation difficulties.
+This is not intended to validate RDE at scale. It is intended to test the usability of the taxonomy, identify annotation difficulties, and prepare the next empirical phase.
 
 ## Initial Design
 
@@ -16,15 +16,33 @@ This is not intended to validate RDE at scale. It is intended to test the usabil
 
 ## Per-sample Fields
 
+Required fields:
+
 - `id`
 - `task`
 - `risk_context`
 - `source`
 - `output`
+
+Pilot annotation fields:
+
 - `human_annotation`
 - `risk_flags`
+- `criticality`
+- `explanation`
+- `task_intent`
+- `reconstructed_task_intent`
+- `task_intent_notes`
 - `notes`
 - `baseline_scores`
+
+## Task-intent reconstruction
+
+When the explicit task is underspecified or conflicts with the risk context, annotators may reconstruct the task intent. This reconstruction must be recorded rather than silently assumed.
+
+- `task_intent`: explicit user or system task intent.
+- `reconstructed_task_intent`: evaluator-reconstructed task intent.
+- `task_intent_notes`: explanation of why reconstruction was needed.
 
 ## Baselines
 
@@ -35,12 +53,14 @@ Initial baselines may include:
 - factuality evaluation
 - generic LLM-as-a-judge
 
-## Metrics
+## Exploratory outputs
 
-- agreement with human annotation
-- recall for `Suspicious Drift`
-- recall for `Critical Distortion`
-- false-positive rate
+The pilot study should produce exploratory findings rather than final validation claims:
+
+- category usability
+- Delta-M axis redundancy or gaps
+- differences from baseline distributions
+- annotator disagreement patterns
 - risk flag quality
 - explanation quality
 

@@ -40,6 +40,11 @@ class RdeSample:
     output: str
     human_annotation: str | None = None
     risk_flags: list[str] = field(default_factory=list)
+    criticality: str | None = None
+    explanation: str | None = None
+    task_intent: str | None = None
+    reconstructed_task_intent: str | None = None
+    task_intent_notes: str | None = None
     notes: str | None = None
 
     @classmethod
@@ -56,8 +61,30 @@ class RdeSample:
             output=str(data["output"]),
             human_annotation=data.get("human_annotation"),
             risk_flags=list(data.get("risk_flags") or []),
+            criticality=data.get("criticality"),
+            explanation=data.get("explanation"),
+            task_intent=data.get("task_intent"),
+            reconstructed_task_intent=data.get("reconstructed_task_intent"),
+            task_intent_notes=data.get("task_intent_notes"),
             notes=data.get("notes"),
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "task": self.task,
+            "risk_context": self.risk_context,
+            "source": self.source,
+            "output": self.output,
+            "human_annotation": self.human_annotation,
+            "risk_flags": self.risk_flags,
+            "criticality": self.criticality,
+            "explanation": self.explanation,
+            "task_intent": self.task_intent,
+            "reconstructed_task_intent": self.reconstructed_task_intent,
+            "task_intent_notes": self.task_intent_notes,
+            "notes": self.notes,
+        }
 
 
 @dataclass(frozen=True)
