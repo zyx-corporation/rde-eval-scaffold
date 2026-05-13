@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from rde_eval.schema import EvaluationResult, RdeLabel, RdeSample
+from rde_eval.schema import Criticality, EvaluationResult, RdeLabel, RdeSample
 
 
 def test_sample_from_dict_accepts_required_fields() -> None:
@@ -30,7 +30,7 @@ def test_evaluation_result_matches_expected() -> None:
         id="sample-001",
         primary_label=RdeLabel.SUSPICIOUS_DRIFT,
         risk_flags=["uncertainty_loss"],
-        criticality="medium",  # type: ignore[arg-type]
+        criticality=Criticality.MEDIUM,
         explanation="test",
         expected_label="Suspicious Drift",
     )
