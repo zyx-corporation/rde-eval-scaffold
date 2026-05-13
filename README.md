@@ -18,6 +18,30 @@ RDE is a framework for auditing meaning changes between a source context and a g
 - This repository does not claim that RDE is already validated at scale.
 - This repository does not yet include OpenAyane, Kotonoha, SLS, vector DB, or UI integration.
 
+## Current Implementation Status
+
+The current implementation is Milestone 1: a deterministic heuristic scaffold for dry-run validation of the RDE schema, label taxonomy, risk flags, JSONL pipeline, CLI output, and basic tests.
+
+Milestone 1 should not be interpreted as a full RDE evaluator or as empirical validation of RDE. It is a reproducibility layer that keeps the experimental format stable before prompt-based and model-based evaluators are introduced.
+
+## Roadmap
+
+### Milestone 1: Heuristic RDE Scaffold
+
+Goal: establish a reproducible scaffold for RDE pilot studies.
+
+### Milestone 2: Prompt-based RDE Evaluator
+
+Goal: add a prompt-based evaluator using the same schema and annotation guide.
+
+### Milestone 3: Baseline Comparison
+
+Goal: compare RDE-style evaluation against existing methods.
+
+### Milestone 4: Annotation Reliability
+
+Goal: evaluate whether RDE labels and risk flags can be applied consistently.
+
 ## Repository Structure
 
 ```text
@@ -29,105 +53,22 @@ rde-eval-scaffold/
     concept.md
     annotation_guide.md
     experiment_plan.md
-  data/
-    samples.jsonl
-    README.md
-  rde_eval/
-    __init__.py
-    schema.py
-    analyzers.py
-    diff.py
-    classifier.py
-    prompts.py
-    evaluator.py
-  scripts/
-    run_eval.py
-    export_results.py
-  tests/
-    test_schema.py
-    test_classifier.py
-  results/
-    .gitkeep
 ```
 
 ## Data Format
 
 Each sample is represented as one JSON object per line.
 
-Minimal legacy-compatible sample:
-
-```json
-{
-  "id": "sample-001",
-  "task": "summarization",
-  "risk_context": "policy_discussion",
-  "source": "This policy may reduce user protection under specific conditions.",
-  "output": "This policy reduces user protection.",
-  "human_annotation": "Suspicious Drift",
-  "risk_flags": ["claim_strength_inflation", "uncertainty_loss"],
-  "notes": "The output removes conditionality and strengthens the claim."
-}
-```
-
-Pilot-style sample with task-intent reconstruction fields:
-
-```json
-{
-  "id": "pilot-001",
-  "task": "summarization",
-  "risk_context": "policy_discussion",
-  "source": "This policy may reduce user protection under specific conditions.",
-  "output": "This policy reduces user protection.",
-  "human_annotation": "Suspicious Drift",
-  "risk_flags": ["claim_strength_inflation", "uncertainty_loss"],
-  "criticality": "medium",
-  "explanation": "条件付き表現が削除され、断定へ変化している。",
-  "task_intent": "Summarize faithfully without removing caveats.",
-  "reconstructed_task_intent": "Faithful risk-sensitive summarization.",
-  "task_intent_notes": "The explicit task was underspecified, so risk context is used.",
-  "notes": "Pilot annotation sample."
-}
-```
-
-## RDE Labels
-
-- `Preserved`
-- `Authorized Transformation`
-- `Inferred Extension`
-- `Unresolved Gap`
-- `Suspicious Drift`
-- `Critical Distortion`
-
-## Risk Flags
-
-- `claim_strength_inflation`
-- `uncertainty_loss`
-- `responsibility_shift`
-- `value_simplification`
-- `institutional_implication_loss`
-- `context_drift`
-- `theoretical_reduction`
+The current `data/samples.jsonl` file contains minimal dry-run examples for schema and pipeline validation. The planned pilot dataset consists of 30 source-output pairs.
 
 ## Minimal Usage
 
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
-python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
 ```
 
 ## Development
 
 ```bash
-python -m pip install -e .[dev]
 pytest
 ```
-
-## Repository Operation
-
-This repository follows an issue-driven workflow. Implementation work should be tied to GitHub issues. Pull requests and merges are performed only after explicit instruction.
-
-## License
-
-Code is licensed under the Apache License 2.0.
-
-Documentation and sample data may be released under CC BY 4.0 unless otherwise specified.
