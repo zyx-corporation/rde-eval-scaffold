@@ -8,7 +8,7 @@ RDE is a framework for auditing meaning changes between a source context and a g
 
 - Provide a small, reproducible evaluation scaffold for RDE.
 - Support pilot studies on summarization, rewriting, and specification conversion.
-- Represent meaning changes as structured labels, risk flags, criticality, and explanations.
+- Represent meaning changes as structured labels, risk flags, criticality, task intent notes, and explanations.
 - Compare RDE-style judgments with baseline methods such as semantic similarity, natural language inference, factuality evaluation, and generic LLM-as-a-judge.
 
 ## Non-goals
@@ -54,6 +54,8 @@ rde-eval-scaffold/
 
 Each sample is represented as one JSON object per line.
 
+Minimal legacy-compatible sample:
+
 ```json
 {
   "id": "sample-001",
@@ -64,6 +66,26 @@ Each sample is represented as one JSON object per line.
   "human_annotation": "Suspicious Drift",
   "risk_flags": ["claim_strength_inflation", "uncertainty_loss"],
   "notes": "The output removes conditionality and strengthens the claim."
+}
+```
+
+Pilot-style sample with task-intent reconstruction fields:
+
+```json
+{
+  "id": "pilot-001",
+  "task": "summarization",
+  "risk_context": "policy_discussion",
+  "source": "This policy may reduce user protection under specific conditions.",
+  "output": "This policy reduces user protection.",
+  "human_annotation": "Suspicious Drift",
+  "risk_flags": ["claim_strength_inflation", "uncertainty_loss"],
+  "criticality": "medium",
+  "explanation": "条件付き表現が削除され、断定へ変化している。",
+  "task_intent": "Summarize faithfully without removing caveats.",
+  "reconstructed_task_intent": "Faithful risk-sensitive summarization.",
+  "task_intent_notes": "The explicit task was underspecified, so risk context is used.",
+  "notes": "Pilot annotation sample."
 }
 ```
 
