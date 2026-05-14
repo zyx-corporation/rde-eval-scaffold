@@ -5,7 +5,6 @@ import csv
 import json
 from pathlib import Path
 
-
 FIELDNAMES = [
     "id",
     "primary_label",

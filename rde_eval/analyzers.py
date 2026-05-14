@@ -23,9 +23,13 @@ def analyze_output(sample: RdeSample) -> TextAnalysis:
 def _analyze_text(text: str) -> TextAnalysis:
     lowered = text.lower()
     return TextAnalysis(
-        has_uncertainty=any(marker in lowered for marker in ("may", "might", "possible", "可能性", "不明")),
+        has_uncertainty=any(
+            marker in lowered for marker in ("may", "might", "possible", "可能性", "不明")
+        ),
         has_responsibility_marker=any(
             marker in lowered for marker in ("responsibility", "accountability", "責任", "承認")
         ),
-        has_theoretical_marker=any(marker in lowered for marker in ("meaning", "semantic", "意味", "監査")),
+        has_theoretical_marker=any(
+            marker in lowered for marker in ("meaning", "semantic", "意味", "監査")
+        ),
     )
