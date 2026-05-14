@@ -108,6 +108,21 @@ pytest
 
 CI は Python 3.12 のみを対象とします。
 
+## 手動検証チェックリスト（Milestone 2 着手前ゲート）
+
+GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) で、Milestone 2 に入る前の人手確認を扱います。リポジトリルートで、**editable install**（`python -m pip install -e .[dev]`）を済ませるか、次の `python scripts/…` には **`PYTHONPATH=.`** を付けて `rde_eval` が解決するようにしてください。
+
+```bash
+ruff check .
+ruff format --check .
+pytest
+python scripts/annotate_pilot.py --help
+python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
+python scripts/export_results.py --input /tmp/rde_results.jsonl --format csv --output /tmp/rde_results.csv
+```
+
+`export_results.py` 単体は `rde_eval` に依存しませんが、同一環境で揃える前提のチェックリストです。
+
 ## Drift-Control Review
 
 主要 PR には以下を含めるべきです。

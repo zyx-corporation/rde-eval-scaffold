@@ -25,3 +25,28 @@ RDEは、source context と generated output の間で生じる意味変化を�
 ## Milestone 1（現在）
 
 実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
+
+## スクリプト実行の前提
+
+`scripts/run_eval.py` や `scripts/annotate_pilot.py` など、パッケージ `rde_eval` を import するスクリプトは、**editable install も `PYTHONPATH` も無い**状態で `python scripts/…` と実行すると `ModuleNotFoundError: No module named 'rde_eval'` になります。リポジトリのルートをカレントにして、次のいずれかを行ってください。
+
+1. **開発用の推奨:** `python -m pip install -e .[dev]`
+2. **一時的な実行:** コマンドの先頭に `PYTHONPATH=.` を付ける（例: `PYTHONPATH=. python scripts/run_eval.py --help`）
+
+`export_results.py` は `rde_eval` に依存しませんが、他と同じ環境で動かすのが無難です。
+
+## 最小の利用例
+
+`python -m pip install -e .` を済ませたあと（または各行の `python` の前に `PYTHONPATH=.` を付けて）:
+
+```bash
+python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
+python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+```
+
+## 開発
+
+```bash
+python -m pip install -e .[dev]
+pytest
+```

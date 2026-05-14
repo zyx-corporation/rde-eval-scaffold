@@ -3,6 +3,12 @@
 `scripts/annotate_pilot.py` は、RDE パイロット研究サンプルを人手で注釈するための  
 日本語優先インタラクティブ CLI ツールです。
 
+## `rde_eval` の import について
+
+`annotate_pilot.py` はパッケージ `rde_eval` を import します。リポジトリルートで、**editable install**（`python -m pip install -e .[dev]`）を済ませるか、コマンド先頭に **`PYTHONPATH=.`** を付けてください（ルートの [`README_ja.md`](../README_ja.md) も参照）。どちらも無いと `ModuleNotFoundError: No module named 'rde_eval'` になります。
+
+以下の例は、いずれかの方法で import が通る前提です。
+
 ---
 
 ## クイックスタート

@@ -129,6 +129,21 @@ pytest
 
 CI targets Python 3.12 only.
 
+## Manual verification checklist (pre–Milestone 2 gate)
+
+GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) tracks a human gate before Milestone 2 work. From the repository root, either install the project in editable mode (`python -m pip install -e .[dev]`) **or** prefix every `python scripts/…` command below with `PYTHONPATH=.` so that `rde_eval` imports succeed.
+
+```bash
+ruff check .
+ruff format --check .
+pytest
+python scripts/annotate_pilot.py --help
+python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
+python scripts/export_results.py --input /tmp/rde_results.jsonl --format csv --output /tmp/rde_results.csv
+```
+
+`export_results.py` does not require `rde_eval`, but the checklist keeps one consistent environment.
+
 ## Determinism Requirement
 
 Milestone 1 outputs must be deterministic.
