@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from rde_eval.schema import Criticality, EvaluationResult, RdeLabel, RdeSample
 
-
 UNCERTAINTY_MARKERS = (
     "may",
     "might",
@@ -47,6 +46,26 @@ THEORY_MARKERS = (
     "設計思想",
 )
 
+# Disjoint domain anchors for deterministic dry-run detection (not semantic reasoning).
+SCIENCE_CONTEXT_MARKERS = (
+    "hypothesis",
+    "the study",
+    "experiment",
+    "control group",
+    "p-value",
+    "実験",
+    "仮説",
+)
+FINANCE_CONTEXT_MARKERS = (
+    "stock price",
+    "market cap",
+    "investor",
+    "dividend",
+    "earnings report",
+    "株価",
+    "配当",
+)
+
 
 def classify_sample(sample: RdeSample) -> EvaluationResult:
     """Classify a source-output pair using deterministic pilot heuristics.
@@ -75,7 +94,19 @@ def classify_sample(sample: RdeSample) -> EvaluationResult:
 
     if _has_any(source, THEORY_MARKERS) and _looks_operational_only(output):
         risk_flags.append("theoretical_reduction")
-        explanation_parts.append("The output may reduce a theoretical claim into an operational statement.")
+        explanation_parts.append(
+            "The output may reduce a theoretical claim into an operational statement."
+        )
+
+    if (
+        _has_any(source, SCIENCE_CONTEXT_MARKERS)
+        and _has_any(output, FINANCE_CONTEXT_MARKERS)
+        and not _has_any(output, SCIENCE_CONTEXT_MARKERS)
+    ):
+        risk_flags.append("context_drift")
+        explanation_parts.append(
+            "The output may shift from a scientific context to a financial one."
+        )
 
     if "value" in source and "value" not in output:
         risk_flags.append("value_simplification")
@@ -113,15 +144,20 @@ def _has_any(text: str, markers: tuple[str, ...]) -> bool:
     return any(marker.lower() in text for marker in markers)
 
 
+_ASSERTIVE_MARKERS = (" is ", " are ", " does ", " reduces ", "である", "する", "だ")
+_AI_DECISION_MARKERS = ("decide", "determine", "judgment", "判断", "決定")
+_OPERATIONAL_MARKERS = ("log", "history", "save", "store", "保存", "ログ", "履歴")
+
+
 def _has_assertive_form(text: str) -> bool:
-    return any(marker in text for marker in (" is ", " are ", " does ", " reduces ", "である", "する", "だ"))
+    return any(marker in text for marker in _ASSERTIVE_MARKERS)
 
 
 def _mentions_ai_decision(text: str) -> bool:
-    return "ai" in text and any(marker in text for marker in ("decide", "determine", "judgment", "判断", "決定"))
+    return "ai" in text and any(marker in text for marker in _AI_DECISION_MARKERS)
 
 
 def _looks_operational_only(text: str) -> bool:
-    return any(marker in text for marker in ("log", "history", "save", "store", "保存", "ログ", "履歴")) and not _has_any(
+    return any(marker in text for marker in _OPERATIONAL_MARKERS) and not _has_any(
         text, THEORY_MARKERS
     )

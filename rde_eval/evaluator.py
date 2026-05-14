@@ -32,4 +32,6 @@ def write_results(path: str | Path, results: Iterable[EvaluationResult]) -> None
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
         for result in results:
-            handle.write(json.dumps(result.to_dict(), ensure_ascii=False) + "\n")
+            handle.write(
+                json.dumps(result.to_dict(), ensure_ascii=False, sort_keys=True) + "\n"
+            )
