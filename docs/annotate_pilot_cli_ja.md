@@ -23,6 +23,9 @@ python scripts/annotate_pilot.py
 | `--input PATH` | `data/pilot_30.jsonl` | 注釈対象の入力 JSONL ファイル |
 | `--output PATH` | `data/annotations/annotations.jsonl` | 注釈結果の出力 JSONL ファイル |
 | `--annotator NAME` | `anonymous` | 各レコードに記録される注釈者識別子 |
+| `--no-resume` | なし | 出力ファイル内の既存 ID を無視し、先頭からやり直す |
+| `--overwrite` | なし | 開始前に出力ファイルを削除する |
+| `--skip-pilot-task-meta` | なし | 入力行の `task_intent` 等4フィールドを注釈行にコピーしない |
 
 使用例：
 
@@ -41,8 +44,8 @@ python scripts/annotate_pilot.py \
 
 ## 再開モード（Resume mode）
 
-出力ファイルと同じディレクトリにある `*.jsonl` ファイルを自動的にスキャンし、  
-既に注釈済みの ID をスキップします。追加のフラグは不要です。
+**選択した `--output` ファイルだけ**を読み、既に存在する `id` のサンプルをスキップします。  
+同じディレクトリにある別名の JSONL は参照しません（再開時も同じ出力パスを指定してください）。
 
 ```bash
 # 1回目のセッション — 途中で Ctrl-C して中断
@@ -126,9 +129,15 @@ g. 理論的縮退              → theoretical_reduction
   "criticality": "medium",
   "explanation": "条件付き表現が削除され、可能性の主張が断定へ変化している。",
   "annotator": "alice",
-  "annotated_at": "2026-05-14T09:00:00+00:00"
+  "annotated_at": "2026-05-14T09:00:00+00:00",
+  "task_intent": "Summarize the policy risk while preserving uncertainty and conditions.",
+  "reconstructed_task_intent": "Faithful risk-sensitive summarization.",
+  "task_intent_notes": "The task requires preserving caveats because the risk context is policy discussion.",
+  "notes": "Pilot summarization sample."
 }
 ```
+
+`task_intent` / `reconstructed_task_intent` / `task_intent_notes` / `notes` は、入力 `pilot_30.jsonl` などに値がある場合に限り、英語フィールドを優先し不足時は対応する `*_ja` からコピーして出力に含めます（空・未設定のキーは行に含めません）。従来どおり最小行にしたい場合は `--skip-pilot-task-meta` を付けます。
 
 ### 正規値ルール（Canonical-value rule）
 
@@ -153,5 +162,4 @@ g. 理論的縮退              → theoretical_reduction
 python -m pytest tests/test_annotate_pilot.py -v
 ```
 
-選択肢のパース・出力形式・I/O ヘルパー・再開動作を対象とした  
-32 件のユニットテストが含まれています。
+選択肢のパース・出力形式・I/O ヘルパー・再開動作を対象としたユニットテストが含まれています。
