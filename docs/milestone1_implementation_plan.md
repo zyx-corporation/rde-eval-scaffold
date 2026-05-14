@@ -52,6 +52,9 @@ Optional annotation fields:
 - `reconstructed_task_intent`
 - `task_intent_notes`
 - `notes`
+- `baseline_scores`
+
+`baseline_scores` is reserved as a schema-compatible placeholder in Milestone 1. The deterministic heuristic scaffold does not populate or interpret this field. It becomes active in the baseline comparison milestone.
 
 #### 2. Label Taxonomy
 
