@@ -3,15 +3,9 @@
 from __future__ import annotations
 
 import json
-import sys
-from pathlib import Path
 
-import pytest
-
-# Make scripts/ importable as a module during tests
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 import annotate_pilot as ap
-
+import pytest
 
 # ---------------------------------------------------------------------------
 # parse_label_choice
