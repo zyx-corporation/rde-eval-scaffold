@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class RdeLabel(str, Enum):
+class RdeLabel(StrEnum):
     PRESERVED = "Preserved"
     AUTHORIZED_TRANSFORMATION = "Authorized Transformation"
     INFERRED_EXTENSION = "Inferred Extension"
@@ -17,7 +17,7 @@ class RdeLabel(str, Enum):
 PRIMARY_LABEL_VALUES = frozenset(member.value for member in RdeLabel)
 
 
-class Criticality(str, Enum):
+class Criticality(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
