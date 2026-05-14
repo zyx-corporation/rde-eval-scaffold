@@ -100,7 +100,7 @@ The heuristic classifier must not be interpreted as a full RDE evaluator.
 
 #### 5. CLI Pipeline
 
-Milestone 1 must support:
+Milestone 1 must support the following invocation from the repository root when `rde_eval` is importable (for example after `python -m pip install -e .` or with `PYTHONPATH=.`):
 
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl

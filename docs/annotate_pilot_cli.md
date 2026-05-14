@@ -3,6 +3,12 @@
 `scripts/annotate_pilot.py` is a Japanese-first interactive command-line tool
 for human annotation of RDE pilot study samples.
 
+## Python environment
+
+`annotate_pilot.py` imports the `rde_eval` package. From the repository root, either run `python -m pip install -e .[dev]` once, or prefix commands with `PYTHONPATH=.` (see the root [`README.md`](../README.md)). Without one of these, `python scripts/annotate_pilot.py` fails with `ModuleNotFoundError: No module named 'rde_eval'`.
+
+The examples below assume an editable install is already configured.
+
 ---
 
 ## Quick start
@@ -23,6 +29,9 @@ This reads `data/pilot_30.jsonl` and writes annotations to
 | `--input PATH` | `data/pilot_30.jsonl` | Input JSONL file to annotate |
 | `--output PATH` | `data/annotations/annotations.jsonl` | Output JSONL file for annotation results |
 | `--annotator NAME` | `anonymous` | Annotator identifier stored in each record |
+| `--no-resume` | off | Ignore IDs already present in the selected output file |
+| `--overwrite` | off | Delete the selected output file before starting |
+| `--skip-pilot-task-meta` | off | Do not copy `task_intent` / `reconstructed_task_intent` / `task_intent_notes` / `notes` from the pilot input row |
 
 Examples:
 
@@ -41,9 +50,7 @@ python scripts/annotate_pilot.py \
 
 ## Resume mode
 
-Already-annotated IDs are detected automatically by scanning all `*.jsonl`
-files in the output file's parent directory. Duplicate annotation is skipped
-without any extra flags.
+Only the selected `--output` file is read to discover already-annotated IDs. Other JSONL files in the same directory are **not** scanned. Use the same `--output` path when resuming.
 
 ```bash
 # First session — annotates records 1–10 then interrupts with Ctrl-C
@@ -127,9 +134,15 @@ Each annotation is saved as one JSON line:
   "criticality": "medium",
   "explanation": "条件付き表現が削除され、可能性の主張が断定へ変化している。",
   "annotator": "alice",
-  "annotated_at": "2026-05-14T09:00:00+00:00"
+  "annotated_at": "2026-05-14T09:00:00+00:00",
+  "task_intent": "Summarize the policy risk while preserving uncertainty and conditions.",
+  "reconstructed_task_intent": "Faithful risk-sensitive summarization.",
+  "task_intent_notes": "The task requires preserving caveats because the risk context is policy discussion.",
+  "notes": "Pilot summarization sample."
 }
 ```
+
+Optional `task_intent` / `reconstructed_task_intent` / `task_intent_notes` / `notes` keys appear when values are copied from the pilot input (English fields preferred, `*_ja` fallback). Omit `--skip-pilot-task-meta` to include them; empty keys are omitted from the JSON line.
 
 ### Canonical-value rule
 
@@ -155,5 +168,6 @@ saved; the next session will resume from where you left off.
 python -m pytest tests/test_annotate_pilot.py -v
 ```
 
-32 unit tests cover choice parsing, output format, I/O helpers, and resume
-behavior.
+Unit tests cover choice parsing, output format, I/O helpers, and resume behavior.
+
+---

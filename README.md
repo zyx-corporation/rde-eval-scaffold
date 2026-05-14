@@ -86,14 +86,36 @@ Each sample is represented as one JSON object per line.
 
 The current `data/samples.jsonl` file contains minimal dry-run examples for schema and pipeline validation. The planned pilot dataset consists of 30 source-output pairs.
 
+## Invoking repository scripts
+
+Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py` and `annotate_pilot.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
+
+Use either of the following from the **repository root**:
+
+1. **Editable install (recommended for development)**
+
+   ```bash
+   python -m pip install -e .[dev]
+   ```
+
+2. **Set `PYTHONPATH` for ad-hoc runs** — prefix each script invocation:
+
+   ```bash
+   PYTHONPATH=. python scripts/run_eval.py --help
+   ```
+
+`scripts/export_results.py` does not import `rde_eval`, so it may run without these steps, but using the same environment keeps behavior consistent.
+
 ## Minimal Usage
+
+After `python -m pip install -e .` (or by prefixing each `python` line with `PYTHONPATH=.`):
 
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
 ```
 
-The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I/O failures; **0** on success. If the package is not installed, run with `PYTHONPATH=.` set to the repository root.
+The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I/O failures; **0** on success.
 
 ## Development
 
