@@ -14,6 +14,9 @@ class RdeLabel(StrEnum):
     CRITICAL_DISTORTION = "Critical Distortion"
 
 
+PRIMARY_LABEL_VALUES = frozenset(member.value for member in RdeLabel)
+
+
 class Criticality(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
@@ -31,6 +34,43 @@ KNOWN_RISK_FLAGS = {
 }
 
 
+def _validate_risk_flags(flags: list[str]) -> None:
+    unknown = sorted({str(f) for f in flags if str(f) not in KNOWN_RISK_FLAGS})
+    if unknown:
+        raise ValueError(f"Unknown risk_flags: {', '.join(unknown)}")
+
+
+def _normalize_human_annotation(raw: Any) -> str | None:
+    if raw is None:
+        return None
+    label = str(raw).strip()
+    if not label:
+        return None
+    if label not in PRIMARY_LABEL_VALUES:
+        raise ValueError(
+            f"Invalid human_annotation {raw!r}; expected one of {sorted(PRIMARY_LABEL_VALUES)}"
+        )
+    return label
+
+
+def _assert_json_compatible(value: Any, *, field_name: str) -> None:
+    """Reject types that JSON cannot represent (Milestone 1 baseline placeholder guard)."""
+
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return
+    if isinstance(value, list):
+        for item in value:
+            _assert_json_compatible(item, field_name=field_name)
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ValueError(f"{field_name} object keys must be strings")
+            _assert_json_compatible(item, field_name=field_name)
+        return
+    raise ValueError(f"{field_name} must be JSON-compatible; got {type(value).__name__}")
+
+
 @dataclass(frozen=True)
 class RdeSample:
     id: str
@@ -46,31 +86,42 @@ class RdeSample:
     reconstructed_task_intent: str | None = None
     task_intent_notes: str | None = None
     notes: str | None = None
+    baseline_scores: Any | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "RdeSample":
+    def from_dict(cls, data: dict[str, Any]) -> RdeSample:
         required = ["id", "task", "risk_context", "source", "output"]
         missing = [key for key in required if not data.get(key)]
         if missing:
             raise ValueError(f"Missing required sample fields: {', '.join(missing)}")
+
+        risk_flags = [str(f) for f in (data.get("risk_flags") or [])]
+        _validate_risk_flags(risk_flags)
+        human_annotation = _normalize_human_annotation(data.get("human_annotation"))
+
+        baseline_raw = data.get("baseline_scores")
+        if baseline_raw is not None:
+            _assert_json_compatible(baseline_raw, field_name="baseline_scores")
+
         return cls(
             id=str(data["id"]),
             task=str(data["task"]),
             risk_context=str(data["risk_context"]),
             source=str(data["source"]),
             output=str(data["output"]),
-            human_annotation=data.get("human_annotation"),
-            risk_flags=list(data.get("risk_flags") or []),
+            human_annotation=human_annotation,
+            risk_flags=risk_flags,
             criticality=data.get("criticality"),
             explanation=data.get("explanation"),
             task_intent=data.get("task_intent"),
             reconstructed_task_intent=data.get("reconstructed_task_intent"),
             task_intent_notes=data.get("task_intent_notes"),
             notes=data.get("notes"),
+            baseline_scores=baseline_raw,
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "id": self.id,
             "task": self.task,
             "risk_context": self.risk_context,
@@ -85,6 +136,9 @@ class RdeSample:
             "task_intent_notes": self.task_intent_notes,
             "notes": self.notes,
         }
+        if self.baseline_scores is not None:
+            result["baseline_scores"] = self.baseline_scores
+        return result
 
 
 @dataclass(frozen=True)

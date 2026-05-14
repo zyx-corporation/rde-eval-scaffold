@@ -18,6 +18,10 @@ RDEは、source context と generated output の間で生じる意味変化を�
 - RDEが大規模に検証済みであるとは主張しない。
 - 現時点ではOpenAyane、Kotonoha、SLS、vector DB、UI統合は含まない。
 
+## Milestone 1（現在）
+
+実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
+
 ## リポジトリ構成
 
 ```text
@@ -33,6 +37,7 @@ rde-eval-scaffold/
     annotation_guide_ja.md
     experiment_plan.md
     experiment_plan_ja.md
+    milestone1_implementation_plan.md
     repository_operation.md
     repository_operation_ja.md
   data/
@@ -52,6 +57,8 @@ rde-eval-scaffold/
   tests/
     test_schema.py
     test_classifier.py
+    test_evaluator.py
+    test_export_results.py
   results/
     .gitkeep
 ```
@@ -120,6 +127,8 @@ rde-eval-scaffold/
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
 ```
+
+パッケージ未インストール時は `PYTHONPATH=.` を付けて実行してください。`run_eval` は JSONL／スキーマエラーまたは I/O 失敗時に終了コード **1**、成功時 **0** です。
 
 ## 開発
 

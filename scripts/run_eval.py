@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 from rde_eval.evaluator import evaluate_samples, load_samples, write_results
 
@@ -13,10 +14,14 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    args = parse_args()
-    samples = load_samples(args.input)
-    results = evaluate_samples(samples)
-    write_results(args.output, results)
+    try:
+        args = parse_args()
+        samples = load_samples(args.input)
+        results = evaluate_samples(samples)
+        write_results(args.output, results)
+    except (OSError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
     print(f"Evaluated {len(results)} samples -> {args.output}")
 
 

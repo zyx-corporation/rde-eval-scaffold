@@ -22,5 +22,6 @@ Each line is a JSON object. The current schema is backward-compatible with the i
 - `reconstructed_task_intent`: evaluator-reconstructed task intent when the explicit task is underspecified or conflicting
 - `task_intent_notes`: notes explaining why task-intent reconstruction was needed
 - `notes`: additional annotation notes
+- `baseline_scores`: Milestone 1 **placeholder only** — optional JSON-compatible object for format stability; the deterministic heuristic scaffold does not populate or interpret it (see `docs/experiment_plan.md` and `docs/milestone1_implementation_plan.md`). Milestone 3 will define active baseline metrics (e.g. BERTScore, NLI).
 
 The initial `samples.jsonl` file is intentionally small and illustrative. It is not a validated benchmark.
