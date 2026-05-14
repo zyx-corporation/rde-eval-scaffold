@@ -31,7 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -41,11 +41,23 @@ from pathlib import Path
 # key -> (canonical English value, Japanese display string)
 LABEL_CHOICES: dict[str, tuple[str, str]] = {
     "1": ("Preserved", "保存済み — 中心的な意図・主張強度・不確実性・責任構造が保存されている"),
-    "2": ("Authorized Transformation", "許可された変換 — タスクによって正当化された変化で重要な意味を損なっていない"),
+    "2": (
+        "Authorized Transformation",
+        "許可された変換 — タスクによって正当化された変化で重要な意味を損なっていない",
+    ),
     "3": ("Inferred Extension", "推論的拡張 — ソースから妥当に推論可能な内容が追加されている"),
-    "4": ("Unresolved Gap", "未解決のギャップ — 重要な意味差分が未処理、または自信を持って分類できない"),
-    "5": ("Suspicious Drift", "疑わしい逸脱 — 主張強度・不確実性・責任・価値構造が潜在的に有害な方向へ変化"),
-    "6": ("Critical Distortion", "重大な歪曲 — ソースの意味・責任構造・制度的含意を実質的に反転・消去・破壊"),
+    "4": (
+        "Unresolved Gap",
+        "未解決のギャップ — 重要な意味差分が未処理、または自信を持って分類できない",
+    ),
+    "5": (
+        "Suspicious Drift",
+        "疑わしい逸脱 — 主張強度・不確実性・責任・価値構造が潜在的に有害な方向へ変化",
+    ),
+    "6": (
+        "Critical Distortion",
+        "重大な歪曲 — ソースの意味・責任構造・制度的含意を実質的に反転・消去・破壊",
+    ),
 }
 
 # letter key -> (canonical English value, Japanese display string)
@@ -54,7 +66,10 @@ RISK_FLAG_CHOICES: dict[str, tuple[str, str]] = {
     "b": ("uncertainty_loss", "不確実性の喪失 — 不確実性・限界・条件・留保が削除"),
     "c": ("responsibility_shift", "責任の移動 — 人間・組織・制度からAIへ責任が移動"),
     "d": ("value_simplification", "価値の単純化 — 複数の価値・対立が単一の結論へ縮退"),
-    "e": ("institutional_implication_loss", "制度的含意の喪失 — 法的・組織的・ガバナンス上の含意が消失"),
+    "e": (
+        "institutional_implication_loss",
+        "制度的含意の喪失 — 法的・組織的・ガバナンス上の含意が消失",
+    ),
     "f": ("context_drift", "文脈の漂流 — 出力がソースとは異なる文脈へ移動"),
     "g": ("theoretical_reduction", "理論的縮退 — 理論的主張が単なる技術的・運用的記述へ縮退"),
 }
@@ -126,7 +141,7 @@ def format_annotation(
         "criticality": criticality,
         "explanation": explanation,
         "annotator": annotator,
-        "annotated_at": datetime.now(tz=timezone.utc).isoformat(),
+        "annotated_at": datetime.now(tz=UTC).isoformat(),
     }
 
 
