@@ -45,3 +45,59 @@ Goal: compare RDE-style evaluation against existing methods.
 ### Milestone 4: Annotation Reliability
 
 Goal: evaluate whether RDE labels and risk flags can be applied consistently.
+
+## Repository Structure
+
+```text
+rde-eval-scaffold/
+  README.md
+  README_ja.md
+  LICENSE
+  pyproject.toml
+  docs/
+    concept.md
+    annotation_guide.md
+    experiment_plan.md
+    milestone1_implementation_plan.md
+    repository_operation.md
+  data/
+    samples.jsonl
+    README.md
+  rde_eval/
+    __init__.py
+    schema.py
+    classifier.py
+    evaluator.py
+  scripts/
+    run_eval.py
+    export_results.py
+  tests/
+    test_schema.py
+    test_classifier.py
+    test_evaluator.py
+    test_export_results.py
+  results/
+    .gitkeep
+```
+
+## Data Format
+
+Each sample is represented as one JSON object per line.
+
+The current `data/samples.jsonl` file contains minimal dry-run examples for schema and pipeline validation. The planned pilot dataset consists of 30 source-output pairs.
+
+## Minimal Usage
+
+```bash
+python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
+python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+```
+
+The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I/O failures; **0** on success. If the package is not installed, run with `PYTHONPATH=.` set to the repository root.
+
+## Development
+
+```bash
+python -m pip install -e .[dev]
+pytest
+```
