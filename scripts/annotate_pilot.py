@@ -9,16 +9,22 @@ Usage (English):
     python scripts/annotate_pilot.py [--input ファイルパス] [--output 出力パス] [--annotator 名前]
 
 Options:
-    --input      Input JSONL file (default: data/pilot_30.jsonl)
-                 入力JONLファイル（デフォルト: data/pilot_30.jsonl）
-    --output     Output JSONL file for annotations (default: data/annotations/annotations.jsonl)
-                 注釈出力JONLファイル（デフォルト: data/annotations/annotations.jsonl）
-    --annotator  Annotator identifier (default: "anonymous")
-                 注釈者識別子（デフォルト: "anonymous"）
+    --input       Input JSONL file (default: data/pilot_30.jsonl)
+                  入力JSONLファイル（デフォルト: data/pilot_30.jsonl）
+    --output      Output JSONL file for annotations (default: data/annotations/annotations.jsonl)
+                  注釈出力JSONLファイル（デフォルト: data/annotations/annotations.jsonl）
+    --annotator   Annotator identifier (default: "anonymous")
+                  注釈者識別子（デフォルト: "anonymous"）
+    --no-resume   Ignore existing records in the selected output file.
+                  選択した出力ファイル内の既存レコードを無視します。
+    --overwrite   Delete the selected output file before starting.
+                  開始前に選択した出力ファイルを削除します。
 
 Resume mode:
-    Already-annotated IDs (present in the output file) are skipped automatically.
-    既に注釈済みのID（出力ファイルに存在するもの）は自動的にスキップされます。
+    Already-annotated IDs present in the selected output file are skipped automatically.
+    Other JSONL files in the same directory are ignored.
+    選択した出力ファイルに存在するIDのみ、自動的にスキップされます。
+    同じディレクトリ内の他のJSONLファイルは無視されます。
 
 Canonical values:
     Labels, risk flags, and criticality are saved as English canonical values
@@ -161,22 +167,29 @@ def load_pilot_records(path: Path) -> list[dict]:
     return records
 
 
-def load_annotated_ids(annotation_dir: Path) -> set[str]:
-    """Collect all IDs already present in *.jsonl files under *annotation_dir*."""
+def load_annotated_ids(output_path: Path) -> set[str]:
+    """Collect IDs already present in the selected output JSONL file only."""
     ids: set[str] = set()
-    for jsonl_file in annotation_dir.glob("*.jsonl"):
-        with jsonl_file.open(encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    record = json.loads(line)
-                    if "id" in record:
-                        ids.add(str(record["id"]))
-                except json.JSONDecodeError:
-                    pass
+    if not output_path.exists():
+        return ids
+    with output_path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+                if "id" in record:
+                    ids.add(str(record["id"]))
+            except json.JSONDecodeError:
+                pass
     return ids
+
+
+def prepare_output_file(output_path: Path, *, overwrite: bool) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if overwrite and output_path.exists():
+        output_path.unlink()
 
 
 def append_annotation(output_path: Path, record: dict) -> None:
@@ -344,7 +357,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--input",
         default="data/pilot_30.jsonl",
-        help="Input JSONL file / 入力JONLファイル (default: data/pilot_30.jsonl)",
+        help="Input JSONL file / 入力JSONLファイル (default: data/pilot_30.jsonl)",
     )
     parser.add_argument(
         "--output",
@@ -355,6 +368,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--annotator",
         default="anonymous",
         help="Annotator identifier / 注釈者識別子 (default: anonymous)",
+    )
+    parser.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="Ignore existing records in the selected output file.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Delete the selected output file before starting.",
     )
     return parser.parse_args(argv)
 
@@ -368,8 +391,13 @@ def main(argv: list[str] | None = None) -> None:
         print(f"エラー: 入力ファイルが見つかりません: {input_path}", file=sys.stderr)
         sys.exit(1)
 
+    if args.no_resume and args.overwrite:
+        print("エラー: --no-resume と --overwrite は同時に指定できません。", file=sys.stderr)
+        sys.exit(1)
+
+    prepare_output_file(output_path, overwrite=args.overwrite)
     records = load_pilot_records(input_path)
-    already_done = load_annotated_ids(output_path.parent)
+    already_done = set() if args.no_resume or args.overwrite else load_annotated_ids(output_path)
 
     count = annotate_interactively(
         records=records,
