@@ -363,9 +363,7 @@ def annotate_interactively(
             criticality = _prompt_criticality()
             explanation = _prompt_explanation()
 
-            meta: dict[str, str] = (
-                {} if skip_pilot_task_meta else extract_pilot_task_meta(record)
-            )
+            meta: dict[str, str] = {} if skip_pilot_task_meta else extract_pilot_task_meta(record)
             annotation = format_annotation(
                 sample_id=record["id"],
                 human_annotation=label,
