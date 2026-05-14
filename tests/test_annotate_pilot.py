@@ -175,8 +175,10 @@ def test_load_annotated_ids_empty_dir(tmp_path):
 def test_load_annotated_ids_reads_single_file(tmp_path):
     f = tmp_path / "ann.jsonl"
     f.write_text(
-        json.dumps({"id": "pilot-001", "human_annotation": "Preserved"}) + "\n"
-        + json.dumps({"id": "pilot-002", "human_annotation": "Critical Distortion"}) + "\n"
+        json.dumps({"id": "pilot-001", "human_annotation": "Preserved"})
+        + "\n"
+        + json.dumps({"id": "pilot-002", "human_annotation": "Critical Distortion"})
+        + "\n"
     )
     ids = ap.load_annotated_ids(tmp_path)
     assert ids == {"pilot-001", "pilot-002"}
@@ -200,8 +202,10 @@ def test_load_annotated_ids_ignores_non_jsonl_files(tmp_path):
 def test_load_annotated_ids_skips_lines_without_id(tmp_path):
     f = tmp_path / "ann.jsonl"
     f.write_text(
-        json.dumps({"human_annotation": "Preserved"}) + "\n"  # no id
-        + json.dumps({"id": "pilot-004"}) + "\n"
+        json.dumps({"human_annotation": "Preserved"})
+        + "\n"  # no id
+        + json.dumps({"id": "pilot-004"})
+        + "\n"
     )
     ids = ap.load_annotated_ids(tmp_path)
     assert ids == {"pilot-004"}
@@ -215,8 +219,10 @@ def test_load_annotated_ids_skips_lines_without_id(tmp_path):
 def test_load_pilot_records_returns_list(tmp_path):
     f = tmp_path / "pilot.jsonl"
     f.write_text(
-        json.dumps({"id": "p-001", "source_ja": "テスト", "output_ja": "出力"}) + "\n"
-        + json.dumps({"id": "p-002", "source_ja": "テスト2", "output_ja": "出力2"}) + "\n"
+        json.dumps({"id": "p-001", "source_ja": "テスト", "output_ja": "出力"})
+        + "\n"
+        + json.dumps({"id": "p-002", "source_ja": "テスト2", "output_ja": "出力2"})
+        + "\n"
     )
     records = ap.load_pilot_records(f)
     assert len(records) == 2
@@ -225,11 +231,7 @@ def test_load_pilot_records_returns_list(tmp_path):
 
 def test_load_pilot_records_skips_blank_lines(tmp_path):
     f = tmp_path / "pilot.jsonl"
-    f.write_text(
-        json.dumps({"id": "p-001"}) + "\n"
-        + "\n"
-        + json.dumps({"id": "p-002"}) + "\n"
-    )
+    f.write_text(json.dumps({"id": "p-001"}) + "\n" + "\n" + json.dumps({"id": "p-002"}) + "\n")
     records = ap.load_pilot_records(f)
     assert len(records) == 2
 
@@ -270,8 +272,10 @@ def test_resume_skips_already_annotated_ids(tmp_path):
 
     pilot_file = tmp_path / "pilot.jsonl"
     pilot_file.write_text(
-        json.dumps({"id": "pilot-001", "source_ja": "a", "output_ja": "b"}) + "\n"
-        + json.dumps({"id": "pilot-002", "source_ja": "c", "output_ja": "d"}) + "\n"
+        json.dumps({"id": "pilot-001", "source_ja": "a", "output_ja": "b"})
+        + "\n"
+        + json.dumps({"id": "pilot-002", "source_ja": "c", "output_ja": "d"})
+        + "\n"
     )
 
     already_done = ap.load_annotated_ids(ann_dir)
