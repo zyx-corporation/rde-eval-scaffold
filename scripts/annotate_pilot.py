@@ -19,6 +19,10 @@ Options:
                   選択した出力ファイル内の既存レコードを無視します。
     --overwrite   Delete the selected output file before starting.
                   開始前に選択した出力ファイルを削除します。
+    --skip-pilot-task-meta
+                  Do not copy task_intent / reconstructed_task_intent /
+                  task_intent_notes / notes from the input pilot record.
+                  入力パイロット行からタスク意図系4フィールドをコピーしない。
 
 Resume mode:
     Already-annotated IDs present in the selected output file are skipped automatically.
@@ -39,6 +43,8 @@ import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+
+from rde_eval.schema import HumanAnnotationRecord
 
 # ---------------------------------------------------------------------------
 # Japanese display maps
@@ -130,6 +136,30 @@ def parse_criticality_choice(key: str) -> str:
     return CRITICALITY_CHOICES[key][0]
 
 
+def extract_pilot_task_meta(record: dict) -> dict[str, str]:
+    """Pull task-intent-related strings from a pilot JSONL row (English first, then *_ja)."""
+    out: dict[str, str] = {}
+    fields: tuple[tuple[str, tuple[str, ...]], ...] = (
+        ("task_intent", ("task_intent", "task_intent_ja")),
+        (
+            "reconstructed_task_intent",
+            ("reconstructed_task_intent", "reconstructed_task_intent_ja"),
+        ),
+        ("task_intent_notes", ("task_intent_notes", "task_intent_notes_ja")),
+        ("notes", ("notes",)),
+    )
+    for canonical, sources in fields:
+        for src in sources:
+            raw = record.get(src)
+            if raw is None:
+                continue
+            text = str(raw).strip()
+            if text:
+                out[canonical] = text
+                break
+    return out
+
+
 def format_annotation(
     *,
     sample_id: str,
@@ -138,17 +168,25 @@ def format_annotation(
     criticality: str,
     explanation: str,
     annotator: str,
+    task_intent: str | None = None,
+    reconstructed_task_intent: str | None = None,
+    task_intent_notes: str | None = None,
+    notes: str | None = None,
 ) -> dict:
     """Build an annotation record with canonical values and ISO-8601 timestamp."""
-    return {
-        "id": sample_id,
-        "human_annotation": human_annotation,
-        "risk_flags": risk_flags,
-        "criticality": criticality,
-        "explanation": explanation,
-        "annotator": annotator,
-        "annotated_at": datetime.now(tz=UTC).isoformat(),
-    }
+    return HumanAnnotationRecord(
+        id=sample_id,
+        human_annotation=human_annotation,
+        risk_flags=risk_flags,
+        criticality=criticality,
+        explanation=explanation,
+        annotator=annotator,
+        annotated_at=datetime.now(tz=UTC).isoformat(),
+        task_intent=task_intent,
+        reconstructed_task_intent=reconstructed_task_intent,
+        task_intent_notes=task_intent_notes,
+        notes=notes,
+    ).to_dict()
 
 
 # ---------------------------------------------------------------------------
@@ -301,6 +339,8 @@ def annotate_interactively(
     output_path: Path,
     annotator: str,
     already_done: set[str],
+    *,
+    skip_pilot_task_meta: bool,
 ) -> int:
     """Run the interactive annotation loop. Returns number of new annotations written."""
     pending = [r for r in records if r.get("id") not in already_done]
@@ -323,6 +363,7 @@ def annotate_interactively(
             criticality = _prompt_criticality()
             explanation = _prompt_explanation()
 
+            meta: dict[str, str] = {} if skip_pilot_task_meta else extract_pilot_task_meta(record)
             annotation = format_annotation(
                 sample_id=record["id"],
                 human_annotation=label,
@@ -330,6 +371,10 @@ def annotate_interactively(
                 criticality=criticality,
                 explanation=explanation,
                 annotator=annotator,
+                task_intent=meta.get("task_intent"),
+                reconstructed_task_intent=meta.get("reconstructed_task_intent"),
+                task_intent_notes=meta.get("task_intent_notes"),
+                notes=meta.get("notes"),
             )
             append_annotation(output_path, annotation)
             count += 1
@@ -379,6 +424,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Delete the selected output file before starting.",
     )
+    parser.add_argument(
+        "--skip-pilot-task-meta",
+        action="store_true",
+        help=(
+            "Do not copy task_intent fields from the input pilot record into each annotation line."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -404,6 +456,7 @@ def main(argv: list[str] | None = None) -> None:
         output_path=output_path,
         annotator=args.annotator,
         already_done=already_done,
+        skip_pilot_task_meta=args.skip_pilot_task_meta,
     )
 
     print(f"\n完了。新規注釈数: {count} 件 → {output_path}")

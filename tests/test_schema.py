@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from rde_eval.schema import Criticality, EvaluationResult, RdeLabel, RdeSample
+from rde_eval.schema import (
+    Criticality,
+    EvaluationResult,
+    HumanAnnotationRecord,
+    RdeLabel,
+    RdeSample,
+)
 
 
 def test_sample_from_dict_accepts_required_fields() -> None:
@@ -138,6 +144,37 @@ def test_sample_from_dict_strips_blank_human_annotation() -> None:
 def test_sample_from_dict_rejects_missing_required_fields() -> None:
     with pytest.raises(ValueError):
         RdeSample.from_dict({"id": "sample-001"})
+
+
+def test_human_annotation_record_to_dict_omits_blank_optionals() -> None:
+    row = HumanAnnotationRecord(
+        id="p-1",
+        human_annotation="Preserved",
+        risk_flags=[],
+        criticality="low",
+        explanation="ok",
+        annotator="alice",
+        annotated_at="2026-01-01T00:00:00+00:00",
+        task_intent="   ",
+        notes="pilot note",
+    )
+    d = row.to_dict()
+    assert "task_intent" not in d
+    assert d["notes"] == "pilot note"
+    assert d["id"] == "p-1"
+
+
+def test_human_annotation_record_rejects_invalid_label() -> None:
+    with pytest.raises(ValueError, match="Invalid human_annotation"):
+        HumanAnnotationRecord(
+            id="x",
+            human_annotation="Bad Label",
+            risk_flags=[],
+            criticality="low",
+            explanation="e",
+            annotator="a",
+            annotated_at="2026-01-01T00:00:00+00:00",
+        )
 
 
 def test_evaluation_result_matches_expected() -> None:

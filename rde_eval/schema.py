@@ -142,6 +142,48 @@ class RdeSample:
 
 
 @dataclass(frozen=True)
+class HumanAnnotationRecord:
+    """One JSONL line of human pilot annotations aligned with ``RdeSample`` optional task fields."""
+
+    id: str
+    human_annotation: str
+    risk_flags: list[str]
+    criticality: str
+    explanation: str
+    annotator: str
+    annotated_at: str
+    task_intent: str | None = None
+    reconstructed_task_intent: str | None = None
+    task_intent_notes: str | None = None
+    notes: str | None = None
+
+    def __post_init__(self) -> None:
+        _validate_risk_flags(list(self.risk_flags))
+        _normalize_human_annotation(self.human_annotation)  # raises if invalid
+
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
+            "id": self.id,
+            "human_annotation": self.human_annotation,
+            "risk_flags": list(self.risk_flags),
+            "criticality": self.criticality,
+            "explanation": self.explanation,
+            "annotator": self.annotator,
+            "annotated_at": self.annotated_at,
+        }
+        for key in (
+            "task_intent",
+            "reconstructed_task_intent",
+            "task_intent_notes",
+            "notes",
+        ):
+            val = getattr(self, key)
+            if val is not None and str(val).strip():
+                out[key] = str(val).strip()
+        return out
+
+
+@dataclass(frozen=True)
 class EvaluationResult:
     id: str
     primary_label: RdeLabel

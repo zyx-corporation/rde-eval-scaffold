@@ -162,13 +162,71 @@ def test_format_annotation_annotated_at_is_iso8601():
     assert dt.tzinfo is not None  # must be timezone-aware
 
 
+def test_format_annotation_includes_task_meta_when_passed():
+    record = ap.format_annotation(
+        sample_id="pilot-001",
+        human_annotation="Preserved",
+        risk_flags=[],
+        criticality="low",
+        explanation="ok",
+        annotator="tester",
+        task_intent="Summarize faithfully.",
+        notes="pilot",
+    )
+    assert record["task_intent"] == "Summarize faithfully."
+    assert record["notes"] == "pilot"
+    assert "reconstructed_task_intent" not in record
+
+
+def test_format_annotation_rejects_unknown_risk_flag():
+    with pytest.raises(ValueError, match="Unknown risk_flags"):
+        ap.format_annotation(
+            sample_id="x",
+            human_annotation="Preserved",
+            risk_flags=["not_a_flag"],
+            criticality="low",
+            explanation="ok",
+            annotator="tester",
+        )
+
+
+def test_extract_pilot_task_meta_prefers_english_over_ja():
+    rec = {
+        "task_intent": "English intent",
+        "task_intent_ja": "日本語",
+    }
+    assert ap.extract_pilot_task_meta(rec) == {"task_intent": "English intent"}
+
+
+def test_extract_pilot_task_meta_falls_back_to_ja():
+    rec = {"task_intent_ja": "日本語のみ"}
+    assert ap.extract_pilot_task_meta(rec) == {"task_intent": "日本語のみ"}
+
+
+def test_extract_pilot_task_meta_all_four_when_present():
+    rec = {
+        "task_intent": "t",
+        "reconstructed_task_intent": "r",
+        "task_intent_notes": "n",
+        "notes": "x",
+    }
+    m = ap.extract_pilot_task_meta(rec)
+    assert m == {
+        "task_intent": "t",
+        "reconstructed_task_intent": "r",
+        "task_intent_notes": "n",
+        "notes": "x",
+    }
+
+
 # ---------------------------------------------------------------------------
 # load_annotated_ids
 # ---------------------------------------------------------------------------
 
 
-def test_load_annotated_ids_empty_dir(tmp_path):
-    ids = ap.load_annotated_ids(tmp_path)
+def test_load_annotated_ids_missing_file_returns_empty(tmp_path):
+    missing = tmp_path / "no_such.jsonl"
+    ids = ap.load_annotated_ids(missing)
     assert ids == set()
 
 
@@ -180,22 +238,23 @@ def test_load_annotated_ids_reads_single_file(tmp_path):
         + json.dumps({"id": "pilot-002", "human_annotation": "Critical Distortion"})
         + "\n"
     )
-    ids = ap.load_annotated_ids(tmp_path)
+    ids = ap.load_annotated_ids(f)
     assert ids == {"pilot-001", "pilot-002"}
 
 
-def test_load_annotated_ids_reads_multiple_files(tmp_path):
+def test_load_annotated_ids_second_file_not_merged(tmp_path):
+    """Only the selected output file is scanned (not sibling JSONL)."""
     (tmp_path / "a.jsonl").write_text(json.dumps({"id": "a-001"}) + "\n")
     (tmp_path / "b.jsonl").write_text(json.dumps({"id": "b-001"}) + "\n")
-    ids = ap.load_annotated_ids(tmp_path)
-    assert "a-001" in ids
-    assert "b-001" in ids
+    ids = ap.load_annotated_ids(tmp_path / "a.jsonl")
+    assert ids == {"a-001"}
 
 
 def test_load_annotated_ids_ignores_non_jsonl_files(tmp_path):
     (tmp_path / "notes.txt").write_text("some notes\n")
-    (tmp_path / "ann.jsonl").write_text(json.dumps({"id": "pilot-003"}) + "\n")
-    ids = ap.load_annotated_ids(tmp_path)
+    ann = tmp_path / "ann.jsonl"
+    ann.write_text(json.dumps({"id": "pilot-003"}) + "\n")
+    ids = ap.load_annotated_ids(ann)
     assert ids == {"pilot-003"}
 
 
@@ -207,7 +266,7 @@ def test_load_annotated_ids_skips_lines_without_id(tmp_path):
         + json.dumps({"id": "pilot-004"})
         + "\n"
     )
-    ids = ap.load_annotated_ids(tmp_path)
+    ids = ap.load_annotated_ids(f)
     assert ids == {"pilot-004"}
 
 
@@ -278,7 +337,7 @@ def test_resume_skips_already_annotated_ids(tmp_path):
         + "\n"
     )
 
-    already_done = ap.load_annotated_ids(ann_dir)
+    already_done = ap.load_annotated_ids(ann_dir / "session1.jsonl")
     records = ap.load_pilot_records(pilot_file)
     pending = [r for r in records if r["id"] not in already_done]
 
