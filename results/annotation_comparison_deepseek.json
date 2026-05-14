@@ -1,0 +1,215 @@
+{
+  "comparable": 11,
+  "criticality_agreement": 0.6363636363636364,
+  "disagreements": [
+    {
+      "candidate_criticality": "medium",
+      "candidate_flags": [
+        "claim_strength_inflation",
+        "uncertainty_loss"
+      ],
+      "candidate_label": "Suspicious Drift",
+      "id": "pilot-rew-001",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "institutional_implication_loss",
+        "theoretical_reduction",
+        "uncertainty_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Critical Distortion"
+    },
+    {
+      "candidate_criticality": "medium",
+      "candidate_flags": [
+        "claim_strength_inflation",
+        "uncertainty_loss"
+      ],
+      "candidate_label": "Suspicious Drift",
+      "id": "pilot-sum-001",
+      "reference_criticality": "medium",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "institutional_implication_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Critical Distortion"
+    },
+    {
+      "candidate_criticality": "high",
+      "candidate_flags": [
+        "claim_strength_inflation",
+        "uncertainty_loss"
+      ],
+      "candidate_label": "Critical Distortion",
+      "id": "pilot-sum-002",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "context_drift",
+        "uncertainty_loss"
+      ],
+      "reference_label": "Critical Distortion"
+    },
+    {
+      "candidate_criticality": "high",
+      "candidate_flags": [
+        "institutional_implication_loss",
+        "responsibility_shift"
+      ],
+      "candidate_label": "Critical Distortion",
+      "id": "pilot-sum-003",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "institutional_implication_loss",
+        "responsibility_shift",
+        "uncertainty_loss"
+      ],
+      "reference_label": "Suspicious Drift"
+    },
+    {
+      "candidate_criticality": "low",
+      "candidate_flags": [],
+      "candidate_label": "Preserved",
+      "id": "pilot-sum-004",
+      "reference_criticality": "low",
+      "reference_flags": [
+        "institutional_implication_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Authorized Transformation"
+    },
+    {
+      "candidate_criticality": "high",
+      "candidate_flags": [
+        "theoretical_reduction"
+      ],
+      "candidate_label": "Critical Distortion",
+      "id": "pilot-sum-005",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "context_drift",
+        "institutional_implication_loss",
+        "theoretical_reduction",
+        "value_simplification"
+      ],
+      "reference_label": "Critical Distortion"
+    },
+    {
+      "candidate_criticality": "medium",
+      "candidate_flags": [
+        "uncertainty_loss",
+        "value_simplification"
+      ],
+      "candidate_label": "Suspicious Drift",
+      "id": "pilot-sum-006",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "context_drift",
+        "institutional_implication_loss",
+        "uncertainty_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Critical Distortion"
+    },
+    {
+      "candidate_criticality": "high",
+      "candidate_flags": [
+        "responsibility_shift",
+        "uncertainty_loss"
+      ],
+      "candidate_label": "Critical Distortion",
+      "id": "pilot-sum-007",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "context_drift",
+        "institutional_implication_loss",
+        "uncertainty_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Unresolved Gap"
+    },
+    {
+      "candidate_criticality": "medium",
+      "candidate_flags": [
+        "claim_strength_inflation",
+        "context_drift"
+      ],
+      "candidate_label": "Suspicious Drift",
+      "id": "pilot-sum-008",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "institutional_implication_loss",
+        "uncertainty_loss",
+        "value_simplification"
+      ],
+      "reference_label": "Suspicious Drift"
+    },
+    {
+      "candidate_criticality": "medium",
+      "candidate_flags": [
+        "institutional_implication_loss",
+        "uncertainty_loss"
+      ],
+      "candidate_label": "Suspicious Drift",
+      "id": "pilot-sum-009",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "claim_strength_inflation",
+        "context_drift",
+        "institutional_implication_loss",
+        "uncertainty_loss"
+      ],
+      "reference_label": "Suspicious Drift"
+    },
+    {
+      "candidate_criticality": "high",
+      "candidate_flags": [
+        "institutional_implication_loss",
+        "responsibility_shift"
+      ],
+      "candidate_label": "Critical Distortion",
+      "id": "pilot-sum-010",
+      "reference_criticality": "high",
+      "reference_flags": [
+        "context_drift",
+        "institutional_implication_loss",
+        "theoretical_reduction",
+        "uncertainty_loss"
+      ],
+      "reference_label": "Critical Distortion"
+    }
+  ],
+  "label_agreement": 0.45454545454545453,
+  "missing_candidate": [],
+  "missing_reference": [
+    "pilot-rew-002",
+    "pilot-rew-003",
+    "pilot-rew-004",
+    "pilot-rew-005",
+    "pilot-rew-006",
+    "pilot-rew-007",
+    "pilot-rew-008",
+    "pilot-rew-009",
+    "pilot-rew-010",
+    "pilot-spec-001",
+    "pilot-spec-002",
+    "pilot-spec-003",
+    "pilot-spec-004",
+    "pilot-spec-005",
+    "pilot-spec-006",
+    "pilot-spec-007",
+    "pilot-spec-008",
+    "pilot-spec-009",
+    "pilot-spec-010"
+  ],
+  "risk_flag_exact_agreement": 0.0,
+  "risk_flag_f1": 0.4590163934426229,
+  "risk_flag_precision": 0.7368421052631579,
+  "risk_flag_recall": 0.3333333333333333,
+  "total": 30
+}
