@@ -18,6 +18,10 @@ RDE is a framework for auditing meaning changes between a source context and a g
 - This repository does not claim that RDE is already validated at scale.
 - This repository does not yet include OpenAyane, Kotonoha, SLS, vector DB, or UI integration.
 
+## Runtime Requirement
+
+This repository targets Python 3.12 or later.
+
 ## Current Implementation Status
 
 The current implementation is Milestone 1: a deterministic heuristic scaffold for dry-run validation of the RDE schema, label taxonomy, risk flags, JSONL pipeline, CLI output, and basic tests.
