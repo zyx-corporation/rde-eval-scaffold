@@ -21,3 +21,7 @@ RDEは、source context と generated output の間で生じる意味変化を�
 ## 実行環境
 
 本リポジトリは Python 3.12 以上を対象とします。
+
+## Milestone 1（現在）
+
+実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
