@@ -52,9 +52,14 @@ Optional annotation fields:
 - `reconstructed_task_intent`
 - `task_intent_notes`
 - `notes`
-- `baseline_scores`
+- `baseline_scores` (optional **schema-compatible placeholder**; see below)
 
-`baseline_scores` is reserved as a schema-compatible placeholder in Milestone 1. The deterministic heuristic scaffold does not populate or interpret this field. It becomes active in the baseline comparison milestone.
+In Milestone 1 the heuristic scaffold **does not populate or interpret** `baseline_scores`; the field is retained so pilot JSONL and later milestones share a stable, reproducible record shape.
+
+##### Placeholder: `baseline_scores` (Milestone 1)
+
+- **Role in Milestone 1**: optional field reserved for a stable on-record shape; may be empty, omitted, or filled manually for dry-runs. The heuristic scaffold **does not compute or consume** it.
+- **Milestone 3**: same field becomes **active** for baseline comparison (e.g. BERTScore, NLI, factuality, LLM-as-a-judge), with values written according to the Milestone 3 specification.
 
 #### 2. Label Taxonomy
 
@@ -104,7 +109,7 @@ python scripts/run_eval.py --input data/samples.jsonl --output results/rde_resul
 Required behavior:
 
 - JSONL loading
-- schema validation
+- schema validation (required fields; optional fields preserved as documented)
 - deterministic evaluation
 - JSONL output generation
 - stable serialization

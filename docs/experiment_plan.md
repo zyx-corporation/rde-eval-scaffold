@@ -34,9 +34,7 @@ Pilot annotation fields:
 - `reconstructed_task_intent`
 - `task_intent_notes`
 - `notes`
-- `baseline_scores`
-
-`baseline_scores` is optional and schema-compatible in Milestone 1. The deterministic heuristic scaffold does not populate or interpret this field. It is reserved for the baseline comparison milestone.
+- `baseline_scores` (see Baselines and milestone roadmap below)
 
 ## Task-intent reconstruction
 
@@ -54,6 +52,15 @@ Initial baselines may include:
 - natural language inference
 - factuality evaluation
 - generic LLM-as-a-judge
+
+### Field lifecycle: `baseline_scores`
+
+`baseline_scores` is an optional, schema-compatible field on each sample JSON line.
+
+- **Milestone 1**: treated as a **placeholder** for format stability and reproducibility. The deterministic heuristic scaffold **does not populate or interpret** it; values may be absent or manually attached for dry-runs without affecting the heuristic pipeline.
+- **Milestone 3**: the same field becomes **active** for baseline comparison, holding structured outputs from methods such as BERTScore, NLI, factuality metrics, and LLM-as-a-judge, as defined in that milestone.
+
+This keeps the pilot experiment plan and the Milestone 1 implementation plan aligned: the experiment schema anticipates baselines while Milestone 1 remains a reproducibility layer only.
 
 ## Exploratory outputs
 
