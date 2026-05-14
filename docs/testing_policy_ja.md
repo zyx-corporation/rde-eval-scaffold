@@ -25,6 +25,36 @@
 
 Milestone 1 では semantic intelligence ではなく deterministic scaffold behavior を重視します。
 
+## TDD 方針
+
+本リポジトリは軽量な TDD（Test-Driven Development）方針を採用します。
+
+推奨フロー:
+
+1. expected behavior を定義
+2. テストを追加または更新
+3. 実装を追加または変更
+4. deterministic reproducibility を確認
+5. 挙動変更時は documentation を更新
+
+behavior-changing implementation work は、原則として同一 Issue または PR 内で tests を伴うべきです。
+
+## 例外
+
+以下では TDD は必須ではありません。
+
+- documentation-only changes
+- repository management tasks
+- exploratory research notes
+- issue decomposition 中の temporary scaffolding
+- non-production と明示された experimental spikes
+
+tests を後回しにする場合は、PR または Issue に以下を記載します。
+
+- tests deferred の理由
+- 将来の expected test coverage
+- unresolved risks
+
 ## テスト層
 
 ### 1. Schema Validation Tests

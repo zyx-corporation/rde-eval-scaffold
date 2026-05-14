@@ -25,6 +25,36 @@ The repository currently targets:
 
 Milestone 1 testing focuses on deterministic scaffold behavior rather than semantic intelligence.
 
+## TDD Policy
+
+This repository follows a lightweight Test-Driven Development (TDD) policy.
+
+Expected workflow:
+
+1. define expected behavior
+2. add or update tests
+3. implement or modify behavior
+4. confirm deterministic reproducibility
+5. update documentation if behavior changes
+
+Behavior-changing implementation work should normally include tests in the same Issue or PR.
+
+## Allowed Exceptions
+
+TDD is not required for:
+
+- documentation-only changes
+- repository management tasks
+- exploratory research notes
+- temporary scaffolding during issue decomposition
+- unfinished experimental spikes that are explicitly marked as non-production
+
+If tests are intentionally deferred, the PR or Issue should explicitly state:
+
+- why tests are deferred
+- expected future test coverage
+- unresolved risks
+
 ## Testing Layers
 
 ### 1. Schema Validation Tests
