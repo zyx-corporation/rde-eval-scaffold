@@ -36,6 +36,8 @@ Pilot annotation fields:
 - `notes`
 - `baseline_scores`
 
+`baseline_scores` is optional and schema-compatible in Milestone 1. The deterministic heuristic scaffold does not populate or interpret this field. It is reserved for the baseline comparison milestone.
+
 ## Task-intent reconstruction
 
 When the explicit task is underspecified or conflicts with the risk context, annotators may reconstruct the task intent. This reconstruction must be recorded rather than silently assumed.
