@@ -33,6 +33,14 @@ def flag_set(record: dict[str, Any]) -> set[str]:
     return set(record.get("risk_flags") or [])
 
 
+def candidate_is_normalized(record: dict[str, Any]) -> bool:
+    """True when a candidate row is eligible for label/flag agreement metrics."""
+    status = record.get("normalization_status")
+    if status is None:
+        return True
+    return status == "ok"
+
+
 def safe_div(numerator: float, denominator: float) -> float:
     if denominator == 0:
         return 1.0 if numerator == 0 else 0.0
@@ -63,6 +71,7 @@ def compare_annotations(
     disagreements: list[dict[str, Any]] = []
     missing_reference: list[str] = []
     missing_candidate: list[str] = []
+    candidate_normalization_failed: list[str] = []
 
     for sample_id in all_ids:
         ref = reference.get(sample_id)
@@ -72,6 +81,9 @@ def compare_annotations(
             continue
         if cand is None:
             missing_candidate.append(sample_id)
+            continue
+        if not candidate_is_normalized(cand):
+            candidate_normalization_failed.append(sample_id)
             continue
 
         comparable += 1
@@ -116,6 +128,7 @@ def compare_annotations(
         "comparable": comparable,
         "missing_reference": missing_reference,
         "missing_candidate": missing_candidate,
+        "candidate_normalization_failed": candidate_normalization_failed,
         "label_agreement": safe_div(label_matches, comparable),
         "criticality_agreement": safe_div(criticality_matches, comparable),
         "risk_flag_exact_agreement": safe_div(risk_exact_matches, comparable),

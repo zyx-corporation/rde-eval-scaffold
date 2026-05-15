@@ -42,7 +42,7 @@ def test_evaluate_row_live_success() -> None:
         assert "p-1" in messages[1]["content"]
         return raw
 
-    rec = evaluate_row(
+    rec, raw_capture = evaluate_row(
         row,
         mode="live",
         provenance=_prov(),
@@ -53,6 +53,7 @@ def test_evaluate_row_live_success() -> None:
     )
     assert rec["normalization_status"] == "ok"
     assert rec["llm_annotation"] == "Preserved"
+    assert raw_capture == raw
 
 
 def test_evaluate_row_live_api_error_becomes_failure_record() -> None:
@@ -61,7 +62,7 @@ def test_evaluate_row_live_api_error_becomes_failure_record() -> None:
     def boom(_messages: list[dict[str, str]]) -> str:
         raise LlmApiError("HTTP 500: server error", status_code=500)
 
-    rec = evaluate_row(
+    rec, raw_capture = evaluate_row(
         {"id": "x", "source": "s", "output": "o"},
         mode="live",
         provenance=_prov(),
@@ -72,6 +73,7 @@ def test_evaluate_row_live_api_error_becomes_failure_record() -> None:
     )
     assert rec["normalization_status"] == "failed"
     assert rec["error_type"] == "api_error"
+    assert raw_capture is None
 
 
 def test_build_chat_messages_uses_extracted_input() -> None:
