@@ -122,9 +122,11 @@ rde-eval-scaffold/
     prompt_eval.py
     llm_client.py
   scripts/
+    annotate_pilot.py
+    compare_annotations.py
+    export_results.py
     run_eval.py
     run_prompt_eval.py
-    export_results.py
   tests/
     test_schema.py
     test_classifier.py
@@ -160,7 +162,7 @@ Use either of the following from the **repository root**:
    PYTHONPATH=. python scripts/run_eval.py --help
    ```
 
-`scripts/export_results.py` does not import `rde_eval`, so it may run without these steps, but using the same environment keeps behavior consistent.
+`scripts/compare_annotations.py` and `scripts/export_results.py` do not import `rde_eval`, so they may run without these steps, but using the same environment keeps behavior consistent.
 
 ## Minimal Usage
 

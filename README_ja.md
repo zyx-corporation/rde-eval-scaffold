@@ -22,6 +22,21 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 本リポジトリは Python 3.12 以上を対象とします。
 
+## リポジトリ構成（抜粋）
+
+リポジトリ全体のツリーは英語 [`README.md`](README.md) の Repository Structure を参照。`scripts/` には次があります。
+
+```text
+scripts/
+  annotate_pilot.py
+  compare_annotations.py
+  export_results.py
+  run_eval.py
+  run_prompt_eval.py
+```
+
+`compare_annotations.py` と `export_results.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。
+
 ## Milestone 1（現在）
 
 実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
@@ -54,7 +69,7 @@ python scripts/run_prompt_eval.py \
 1. **開発用の推奨:** `python -m pip install -e '.[dev]'`（Zsh では `.[dev]` をクォート）
 2. **一時的な実行:** コマンドの先頭に `PYTHONPATH=.` を付ける（例: `PYTHONPATH=. python scripts/run_eval.py --help`）
 
-`export_results.py` は `rde_eval` に依存しませんが、他と同じ環境で動かすのが無難です。
+`rde_eval` を import しないスクリプトは上記「リポジトリ構成（抜粋）」節に記載。
 
 ## 最小の利用例
 
