@@ -32,8 +32,9 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 - **`--mode stub`** … API なし。固定 JSON を行ごとに正規化。
 - **`--mode replay --raw-jsonl PATH`** … 保存済み `id` + `raw_output` をマージして正規化。
+- **`--mode live`** … OpenAI 互換 API を行ごとに呼び出し（`OPENAI_API_KEY` 等）。失敗行は `api_error`。
 
-プロンプト文面は `rde_eval.prompt_template`（`rde-prompt-eval-v1`）。
+プロンプト: `rde_eval.prompt_template`（`rde-prompt-eval-v1`）。HTTP: `rde_eval.llm_client`（標準ライブラリのみ）。
 
 ```bash
 python scripts/run_prompt_eval.py \

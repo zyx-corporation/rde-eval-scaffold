@@ -7,22 +7,28 @@ Reads pilot-style JSONL and writes normalized LLM annotation JSONL per
 Modes:
   stub   — fixed in-process JSON per row (no network)
   replay — normalize captured ``raw_output`` rows from ``--raw-jsonl``
+  live   — OpenAI-compatible chat API per row, then normalize
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from rde_eval.llm_client import LlmApiError, chat_completion
 from rde_eval.prompt_eval import (
     build_failure_record,
+    extract_prompt_input,
     load_raw_outputs_by_id,
     normalize_model_output,
     stub_model_raw_output,
 )
+from rde_eval.prompt_template import PROMPT_VERSION_V1, build_chat_messages
 
 
 def _load_jsonl_objects(path: Path) -> list[dict[str, Any]]:
@@ -49,9 +55,59 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
             handle.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+def evaluate_row(
+    row: dict[str, Any],
+    *,
+    mode: str,
+    provenance: dict[str, str],
+    raw_stub: str,
+    raw_by_id: dict[str, str],
+    prompt_version: str,
+    llm_call: Callable[[list[dict[str, str]]], str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate one pilot row and return a normalized (or failure) record."""
+    if "id" not in row:
+        raise ValueError("input row missing required field 'id'")
+    sample_id = str(row["id"])
+
+    if mode == "stub":
+        return normalize_model_output(sample_id, provenance, raw_stub)
+
+    if mode == "replay":
+        raw = raw_by_id.get(sample_id)
+        if raw is None:
+            return build_failure_record(
+                sample_id,
+                provenance,
+                error_type="missing_raw_output",
+                error_message=f"No raw_output for id {sample_id!r} in replay file.",
+                raw_output="",
+            )
+        return normalize_model_output(sample_id, provenance, raw)
+
+    if mode == "live":
+        if llm_call is None:
+            raise ValueError("live mode requires llm_call")
+        prompt_input = extract_prompt_input(row)
+        messages = build_chat_messages(prompt_input, prompt_version=prompt_version)
+        try:
+            raw_output = llm_call(messages)
+        except LlmApiError as exc:
+            return build_failure_record(
+                sample_id,
+                provenance,
+                error_type="api_error",
+                error_message=str(exc),
+                raw_output="",
+            )
+        return normalize_model_output(sample_id, provenance, raw_output)
+
+    raise ValueError(f"Unknown mode: {mode!r}")
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Milestone 2 prompt evaluator (stub / replay normalization; no live API)."
+        description="Milestone 2 prompt evaluator (stub / replay / live OpenAI-compatible API)."
     )
     parser.add_argument(
         "--input", required=True, help="Input pilot JSONL (e.g. data/pilot_30.jsonl)."
@@ -59,21 +115,43 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", required=True, help="Output JSONL path for normalized records.")
     parser.add_argument(
         "--mode",
-        choices=("stub", "replay"),
+        choices=("stub", "replay", "live"),
         default="stub",
-        help="stub: fixed JSON per row; replay: normalize --raw-jsonl captures by id.",
+        help="stub | replay (--raw-jsonl) | live (chat API).",
     )
     parser.add_argument(
         "--raw-jsonl",
         help="Replay mode: JSONL with id + raw_output per line (model capture).",
     )
+    parser.add_argument(
+        "--api-base-url",
+        default="https://api.openai.com/v1",
+        help="Live mode: API base URL (OpenAI-compatible /chat/completions).",
+    )
+    parser.add_argument(
+        "--api-key-env",
+        default="OPENAI_API_KEY",
+        help="Live mode: environment variable holding the API key.",
+    )
+    parser.add_argument(
+        "--timeout-sec",
+        type=float,
+        default=120.0,
+        help="Live mode: HTTP timeout in seconds.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Process at most N input rows (useful for dry-runs).",
+    )
     parser.add_argument("--annotator-type", default="llm", help="Provenance: annotator_type.")
     parser.add_argument("--annotator-id", default="stub", help="Provenance: annotator_id.")
-    parser.add_argument("--model", default="stub-model", help="Provenance: model identifier.")
+    parser.add_argument("--model", default="stub-model", help="Provenance / live: model id.")
     parser.add_argument(
         "--prompt-version",
-        default="rde-prompt-eval-stub-v1",
-        help="Provenance: prompt_version string.",
+        default=None,
+        help="Prompt template version (default: stub-v1 for stub, rde-prompt-eval-v1 for live).",
     )
     parser.add_argument(
         "--annotation-run-id",
@@ -96,11 +174,19 @@ def main(argv: list[str] | None = None) -> None:
         print("Error: --mode replay requires --raw-jsonl", file=sys.stderr)
         sys.exit(1)
 
+    if args.mode == "live" and args.model == "stub-model":
+        print("Error: --mode live requires --model (not stub-model)", file=sys.stderr)
+        sys.exit(1)
+
+    prompt_version = args.prompt_version
+    if prompt_version is None:
+        prompt_version = PROMPT_VERSION_V1 if args.mode == "live" else "rde-prompt-eval-stub-v1"
+
     provenance = {
         "annotator_type": args.annotator_type,
         "annotator_id": args.annotator_id,
         "model": args.model,
-        "prompt_version": args.prompt_version,
+        "prompt_version": prompt_version,
         "annotation_run_id": args.annotation_run_id,
     }
 
@@ -109,6 +195,12 @@ def main(argv: list[str] | None = None) -> None:
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
+
+    if args.limit is not None:
+        if args.limit < 1:
+            print("Error: --limit must be >= 1", file=sys.stderr)
+            sys.exit(1)
+        records_in = records_in[: args.limit]
 
     raw_by_id: dict[str, str] = {}
     if args.mode == "replay":
@@ -122,29 +214,45 @@ def main(argv: list[str] | None = None) -> None:
             print(f"Error: {exc}", file=sys.stderr)
             sys.exit(1)
 
+    llm_call: Callable[[list[dict[str, str]]], str] | None = None
+    if args.mode == "live":
+        api_key = os.environ.get(args.api_key_env, "")
+        if not api_key.strip():
+            print(
+                f"Error: live mode requires {args.api_key_env} to be set in the environment.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        def _call(messages: list[dict[str, str]]) -> str:
+            return chat_completion(
+                messages,
+                model=args.model,
+                api_key=api_key,
+                base_url=args.api_base_url,
+                timeout_sec=args.timeout_sec,
+            )
+
+        llm_call = _call
+
     raw_stub = stub_model_raw_output()
     out_rows: list[dict[str, Any]] = []
-    for row in records_in:
-        if "id" not in row:
-            print("Error: input row missing required field 'id'", file=sys.stderr)
-            sys.exit(1)
-        sample_id = str(row["id"])
-        if args.mode == "stub":
-            out_rows.append(normalize_model_output(sample_id, provenance, raw_stub))
-        elif args.mode == "replay":
-            raw = raw_by_id.get(sample_id)
-            if raw is None:
-                out_rows.append(
-                    build_failure_record(
-                        sample_id,
-                        provenance,
-                        error_type="missing_raw_output",
-                        error_message=f"No raw_output for id {sample_id!r} in replay file.",
-                        raw_output="",
-                    )
+    try:
+        for row in records_in:
+            out_rows.append(
+                evaluate_row(
+                    row,
+                    mode=args.mode,
+                    provenance=provenance,
+                    raw_stub=raw_stub,
+                    raw_by_id=raw_by_id,
+                    prompt_version=prompt_version,
+                    llm_call=llm_call,
                 )
-            else:
-                out_rows.append(normalize_model_output(sample_id, provenance, raw))
+            )
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     try:
         _write_jsonl(output_path, out_rows)

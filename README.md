@@ -54,9 +54,20 @@ python scripts/run_prompt_eval.py \
   --raw-jsonl path/to/captures.jsonl \
   --output results/prompt_eval_replay.jsonl \
   --annotation-run-id "$(date +%Y%m%d)-replay-local"
+
+# Live — OpenAI-compatible chat API (requires API key in env)
+export OPENAI_API_KEY=...   # or use --api-key-env
+python scripts/run_prompt_eval.py \
+  --mode live \
+  --model gpt-4o-mini \
+  --annotator-id openai \
+  --input data/samples.jsonl \
+  --output results/prompt_eval_live.jsonl \
+  --annotation-run-id "$(date +%Y%m%d)-live" \
+  --limit 2
 ```
 
-Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`).
+Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client: `rde_eval.llm_client`.
 
 ### Milestone 3: Baseline Comparison
 
@@ -89,6 +100,7 @@ rde-eval-scaffold/
     classifier.py
     evaluator.py
     prompt_eval.py
+    llm_client.py
   scripts/
     run_eval.py
     run_prompt_eval.py
