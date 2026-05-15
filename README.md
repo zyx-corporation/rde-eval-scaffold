@@ -64,10 +64,13 @@ python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \
   --output results/prompt_eval_live.jsonl \
   --annotation-run-id "$(date +%Y%m%d)-live" \
-  --limit 2
+  --limit 2 \
+  --raw-captures-out results/prompt_eval_captures.jsonl
 ```
 
 Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client: `rde_eval.llm_client`.
+
+`compare_annotations.py` excludes candidate rows with `normalization_status: failed` from agreement metrics and lists them under `candidate_normalization_failed`.
 
 ### Milestone 3: Baseline Comparison
 

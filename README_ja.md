@@ -36,6 +36,8 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 プロンプト: `rde_eval.prompt_template`（`rde-prompt-eval-v1`）。HTTP: `rde_eval.llm_client`（標準ライブラリのみ）。
 
+live 実行時は `--raw-captures-out` で replay 用の `id` + `raw_output` を保存できます。`compare_annotations.py` は candidate の `normalization_status: failed` を一致率から除外し、`candidate_normalization_failed` に列挙します。
+
 ```bash
 python scripts/run_prompt_eval.py \
   --input data/pilot_30.jsonl \

@@ -66,6 +66,8 @@ If an ID exists in one file but not the other, the comparison result must record
 - missing reference record
 - missing candidate record
 
+Candidate rows with `normalization_status: failed` (API or normalization failures from `run_prompt_eval`) are listed under `candidate_normalization_failed` and excluded from label/criticality/risk-flag agreement denominators. Legacy candidate files without `normalization_status` are treated as normalized.
+
 ## Aggregate Metrics
 
 ### Label Agreement

@@ -55,6 +55,12 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
             handle.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+def _append_jsonl(path: Path, record: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
 def evaluate_row(
     row: dict[str, Any],
     *,
@@ -64,26 +70,33 @@ def evaluate_row(
     raw_by_id: dict[str, str],
     prompt_version: str,
     llm_call: Callable[[list[dict[str, str]]], str] | None = None,
-) -> dict[str, Any]:
-    """Evaluate one pilot row and return a normalized (or failure) record."""
+) -> tuple[dict[str, Any], str | None]:
+    """Evaluate one pilot row.
+
+    Returns ``(normalized_record, raw_capture)``. *raw_capture* is set only in
+    live mode when the API returns a body (including when normalization later fails).
+    """
     if "id" not in row:
         raise ValueError("input row missing required field 'id'")
     sample_id = str(row["id"])
 
     if mode == "stub":
-        return normalize_model_output(sample_id, provenance, raw_stub)
+        return normalize_model_output(sample_id, provenance, raw_stub), None
 
     if mode == "replay":
         raw = raw_by_id.get(sample_id)
         if raw is None:
-            return build_failure_record(
-                sample_id,
-                provenance,
-                error_type="missing_raw_output",
-                error_message=f"No raw_output for id {sample_id!r} in replay file.",
-                raw_output="",
+            return (
+                build_failure_record(
+                    sample_id,
+                    provenance,
+                    error_type="missing_raw_output",
+                    error_message=f"No raw_output for id {sample_id!r} in replay file.",
+                    raw_output="",
+                ),
+                None,
             )
-        return normalize_model_output(sample_id, provenance, raw)
+        return normalize_model_output(sample_id, provenance, raw), None
 
     if mode == "live":
         if llm_call is None:
@@ -93,14 +106,17 @@ def evaluate_row(
         try:
             raw_output = llm_call(messages)
         except LlmApiError as exc:
-            return build_failure_record(
-                sample_id,
-                provenance,
-                error_type="api_error",
-                error_message=str(exc),
-                raw_output="",
+            return (
+                build_failure_record(
+                    sample_id,
+                    provenance,
+                    error_type="api_error",
+                    error_message=str(exc),
+                    raw_output="",
+                ),
+                None,
             )
-        return normalize_model_output(sample_id, provenance, raw_output)
+        return normalize_model_output(sample_id, provenance, raw_output), raw_output
 
     raise ValueError(f"Unknown mode: {mode!r}")
 
@@ -145,6 +161,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Process at most N input rows (useful for dry-runs).",
     )
+    parser.add_argument(
+        "--raw-captures-out",
+        help="Live mode: append id + raw_output JSONL for replay (--mode replay).",
+    )
     parser.add_argument("--annotator-type", default="llm", help="Provenance: annotator_type.")
     parser.add_argument("--annotator-id", default="stub", help="Provenance: annotator_id.")
     parser.add_argument("--model", default="stub-model", help="Provenance / live: model id.")
@@ -176,6 +196,10 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.mode == "live" and args.model == "stub-model":
         print("Error: --mode live requires --model (not stub-model)", file=sys.stderr)
+        sys.exit(1)
+
+    if args.raw_captures_out and args.mode != "live":
+        print("Error: --raw-captures-out is only valid with --mode live", file=sys.stderr)
         sys.exit(1)
 
     prompt_version = args.prompt_version
@@ -236,20 +260,28 @@ def main(argv: list[str] | None = None) -> None:
         llm_call = _call
 
     raw_stub = stub_model_raw_output()
+    captures_path = Path(args.raw_captures_out) if args.raw_captures_out else None
+    if captures_path is not None and captures_path.exists():
+        captures_path.unlink()
+
     out_rows: list[dict[str, Any]] = []
     try:
         for row in records_in:
-            out_rows.append(
-                evaluate_row(
-                    row,
-                    mode=args.mode,
-                    provenance=provenance,
-                    raw_stub=raw_stub,
-                    raw_by_id=raw_by_id,
-                    prompt_version=prompt_version,
-                    llm_call=llm_call,
-                )
+            rec, raw_capture = evaluate_row(
+                row,
+                mode=args.mode,
+                provenance=provenance,
+                raw_stub=raw_stub,
+                raw_by_id=raw_by_id,
+                prompt_version=prompt_version,
+                llm_call=llm_call,
             )
+            out_rows.append(rec)
+            if raw_capture is not None and captures_path is not None:
+                _append_jsonl(
+                    captures_path,
+                    {"id": str(row["id"]), "raw_output": raw_capture},
+                )
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
@@ -261,7 +293,10 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     ok_count = sum(1 for r in out_rows if r.get("normalization_status") == "ok")
-    print(f"Wrote {len(out_rows)} prompt-eval records ({ok_count} ok) -> {output_path}")
+    msg = f"Wrote {len(out_rows)} prompt-eval records ({ok_count} ok) -> {output_path}"
+    if captures_path is not None:
+        msg += f"; raw captures -> {captures_path}"
+    print(msg)
 
 
 if __name__ == "__main__":
