@@ -93,6 +93,14 @@ Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client:
 
 Goal: compare RDE-style evaluation against existing methods.
 
+**Phase 1 (in repo):** deterministic lexical overlap via `difflib` — no extra dependencies. See [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md). CLI:
+
+```bash
+python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
+```
+
+(`PYTHONPATH=.` or `pip install -e '.[dev]'` required so `rde_eval` imports resolve.)
+
 ### Milestone 4: Annotation Reliability
 
 Goal: evaluate whether RDE labels and risk flags can be applied consistently.
@@ -110,12 +118,14 @@ rde-eval-scaffold/
     annotation_guide.md
     experiment_plan.md
     milestone1_implementation_plan.md
+    milestone3_baseline_plan.md
     repository_operation.md
   data/
     samples.jsonl
     README.md
   rde_eval/
     __init__.py
+    baselines.py
     schema.py
     classifier.py
     evaluator.py
@@ -125,6 +135,7 @@ rde-eval-scaffold/
     annotate_pilot.py
     compare_annotations.py
     export_results.py
+    run_baselines.py
     run_eval.py
     run_prompt_eval.py
   tests/
@@ -144,7 +155,7 @@ The current `data/samples.jsonl` file contains minimal dry-run examples for sche
 
 ## Invoking repository scripts
 
-Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py`, `annotate_pilot.py`, and `run_prompt_eval.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
+Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py`, `annotate_pilot.py`, `run_baselines.py`, and `run_prompt_eval.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
 
 Use either of the following from the **repository root**:
 

@@ -31,11 +31,12 @@ scripts/
   annotate_pilot.py
   compare_annotations.py
   export_results.py
+  run_baselines.py
   run_eval.py
   run_prompt_eval.py
 ```
 
-`compare_annotations.py` と `export_results.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。
+`compare_annotations.py` と `export_results.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。`run_baselines.py` は `rde_eval.baselines` を使うため、editable install または `PYTHONPATH=.` が必要です。
 
 ## Milestone 1（現在）
 
@@ -62,9 +63,19 @@ python scripts/run_prompt_eval.py \
   --annotation-run-id "$(date +%Y%m%d)-stub-local"
 ```
 
+## Milestone 3（ベースライン・フェーズ1）
+
+方針は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)。現状は `difflib` による字句類似度のみ（追加依存なし）。`baseline_scores.m3` にマージする。
+
+```bash
+python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
+```
+
+`run_baselines.py` は `rde_eval` を import するため、`run_eval.py` 等と同様に editable install または `PYTHONPATH=.` が必要です。
+
 ## スクリプト実行の前提
 
-`scripts/run_eval.py` や `scripts/annotate_pilot.py`、`scripts/run_prompt_eval.py` など、パッケージ `rde_eval` を import するスクリプトは、**editable install も `PYTHONPATH` も無い**状態で `python scripts/…` と実行すると `ModuleNotFoundError: No module named 'rde_eval'` になります。リポジトリのルートをカレントにして、次のいずれかを行ってください。
+`scripts/run_eval.py` や `scripts/annotate_pilot.py`、`scripts/run_baselines.py`、`scripts/run_prompt_eval.py` など、パッケージ `rde_eval` を import するスクリプトは、**editable install も `PYTHONPATH` も無い**状態で `python scripts/…` と実行すると `ModuleNotFoundError: No module named 'rde_eval'` になります。リポジトリのルートをカレントにして、次のいずれかを行ってください。
 
 1. **開発用の推奨:** `python -m pip install -e '.[dev]'`（Zsh では `.[dev]` をクォート）
 2. **一時的な実行:** コマンドの先頭に `PYTHONPATH=.` を付ける（例: `PYTHONPATH=. python scripts/run_eval.py --help`）
