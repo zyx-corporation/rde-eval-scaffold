@@ -147,20 +147,24 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
     )
 
 
+def _format_pct(value: Any) -> str:
+    if isinstance(value, (int, float)):
+        return f"{100.0 * value:.1f}%"
+    return str(value)
+
+
 def format_comparison_summary(result: dict[str, Any]) -> str:
     """Human-readable summary for terminal output."""
-    pct = lambda v: f"{100.0 * v:.1f}%" if isinstance(v, (int, float)) else str(v)
-
     lines = [
         "RDE annotation comparison summary",
         f"  Total IDs (union):              {result.get('total', 0)}",
         f"  Comparable pairs:               {result.get('comparable', 0)}",
-        f"  Label agreement:                {pct(result.get('label_agreement'))}",
-        f"  Criticality agreement:          {pct(result.get('criticality_agreement'))}",
-        f"  Risk flag exact agreement:      {pct(result.get('risk_flag_exact_agreement'))}",
-        f"  Risk flag precision (micro):    {pct(result.get('risk_flag_precision'))}",
-        f"  Risk flag recall (micro):       {pct(result.get('risk_flag_recall'))}",
-        f"  Risk flag F1 (micro):           {pct(result.get('risk_flag_f1'))}",
+        f"  Label agreement:                {_format_pct(result.get('label_agreement'))}",
+        f"  Criticality agreement:          {_format_pct(result.get('criticality_agreement'))}",
+        f"  Risk flag exact agreement:      {_format_pct(result.get('risk_flag_exact_agreement'))}",
+        f"  Risk flag precision (micro):    {_format_pct(result.get('risk_flag_precision'))}",
+        f"  Risk flag recall (micro):       {_format_pct(result.get('risk_flag_recall'))}",
+        f"  Risk flag F1 (micro):           {_format_pct(result.get('risk_flag_f1'))}",
         f"  Disagreements:                  {len(result.get('disagreements') or [])}",
     ]
     missing_ref = result.get("missing_reference") or []
