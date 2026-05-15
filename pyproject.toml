@@ -24,6 +24,10 @@ dev = [
 baseline = [
   "bert-score>=0.3.13",
 ]
+# NLI baseline stack (planned implementation) — transformers pulls torch-like deps as needed
+baseline-nli = [
+  "transformers>=4.40.0",
+]
 
 [tool.setuptools.packages.find]
 include = ["rde_eval*"]

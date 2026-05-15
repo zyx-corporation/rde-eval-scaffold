@@ -71,14 +71,16 @@ python scripts/run_prompt_eval.py \
 - **フェーズ2（任意）:** BERTScore。`python -m pip install -e '.[baseline]'` のうえ `--bertscore`（必要なら `--bertscore-lang`）。詳細は同ドキュメント。
 
 ```bash
+python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl --bertscore
+```
+
+字句のみ（フェーズ1のみ）の例:
+
+```bash
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-BERTScore 付きの例:
-
-```bash
-python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl --bertscore
-```
+- **フェーズ3（計画・未実装）:** NLI を `baseline_scores.m3.nli` に載せる案と **`[baseline-nli]`**（`transformers`）— 詳細は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)。CLI は未配線です。
 
 探索用ノートブック: [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb)（字句比率と `human_annotation` の対比）。
 

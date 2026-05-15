@@ -99,7 +99,9 @@ Goal: compare RDE-style evaluation against existing methods.
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-**Phase 2 (optional):** BERTScore via `pip install -e '.[baseline]'`, then add `--bertscore` and optionally `--bertscore-lang`. See the same doc for the `baseline_scores.m3` contract.
+**Phase 2 (optional):** BERTScore via `pip install -e '.[baseline]'`, then add `--bertscore` and optionally `--bertscore-lang`.
+
+**Phase 3 (planned):** NLI contract and `[baseline-nli]` extra — see [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md) (no CLI wiring yet).
 
 **Notebook:** exploratory join of lexical ratio vs `human_annotation` — [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb).
 

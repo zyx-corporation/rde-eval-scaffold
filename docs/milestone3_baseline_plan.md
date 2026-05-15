@@ -4,9 +4,9 @@
 
 Milestone 3 compares RDE-style judgments with lighter-weight signals recorded on each sample under `baseline_scores` (see [`experiment_plan.md`](experiment_plan.md) and [`milestone1_implementation_plan.md`](milestone1_implementation_plan.md)).
 
-This document describes **phase 1** (lexical, always-on) and **phase 2** (optional neural baselines), plus how they appear on disk.
+This document describes **phase 1** (lexical, always-on), **phase 2** (optional BERTScore), and **phase 3** (planned NLI), plus how metrics appear on disk.
 
-## Optional dependencies (`[baseline]`)
+## Optional dependencies (`[baseline]`, `[baseline-nli]`)
 
 Lexical baselines use only the Python standard library. BERTScore and similar methods add heavy dependencies (PyTorch via `bert-score`).
 
@@ -14,6 +14,12 @@ Install for local or notebook experiments:
 
 ```bash
 python -m pip install -e '.[dev,baseline]'
+```
+
+For the planned NLI stack (phase 3), add **`[baseline-nli]`** (`transformers`; PyTorch as required by your platform).
+
+```bash
+python -m pip install -e '.[dev,baseline,baseline-nli]'
 ```
 
 CI keeps the default install (`-e ".[dev]"` only) so unit tests must not require `bert-score` unless injected (see tests).
@@ -39,7 +45,7 @@ Phase 1 merges under a **`m3` namespace** so pilots can retain other keys (for e
 }
 ```
 
-- **`m3.version`**: `"1"` when only lexical metrics are present; **`"2"`** when `m3.bertscore` is also written (phase 2).
+- **`m3.version`**: `"1"` lexical only; **`"2"`** when `m3.bertscore` is present and NLI is absent; **`"3"`** when `m3.nli` is present (BERTScore may also be present).
 - **`lexical.sequence_ratio`**: `difflib.SequenceMatcher` ratio between `source` and `output` (required sample fields).
 - **`lexical.method`**: fixed string for reproducibility and exports.
 
@@ -91,20 +97,85 @@ Batch scoring is used internally (one model load for all lines). First run may d
 - Pin environments (Python, `bert-score`, and transitive `torch`) when publishing numbers.
 - Default model family follows the `bert-score` package defaults for the chosen `lang`; record versions in paper / appendix, not only JSON rows.
 
-### Future work (not implemented)
+### Future extensions (not implemented)
 
 | Direction | Notes |
 |-----------|--------|
-| **NLI** | Entailment between `source` and `output` as a numeric or label feature; needs `transformers` + model choice and latency budget. |
 | **Factuality / claim checks** | Often API or task-specific; define I/O in a follow-on doc before coding. |
 | **LLM-as-judge** | Align with existing `run_prompt_eval` provenance patterns; separate from `bert-score` to avoid double-counting cost. |
 
-These should extend `m3` with new sibling keys (for example `m3.nli`) and bump **`m3.version`** when the subtree contract changes.
+## Phase 3 — NLI (planned, not implemented)
 
-## CLI (phase 1)
+### Role
 
-[`scripts/run_baselines.py`](../scripts/run_baselines.py) reads an input JSONL of samples, computes phase-1 metrics, **merges** into `baseline_scores`, and writes JSONL. With **`--bertscore`**, it also merges phase 2 after `[baseline]` is installed. Extra per-line keys (for example `source_ja`) are preserved.
+A standard **premise–hypothesis** NLI model scores whether `output` (**hypothesis**) is entailed by `source` (**premise**). This is a blunt signal: it does **not** encode caveat preservation, institutional responsibility, or RDE risk flags.
+
+### Optional dependencies
+
+Install **`[baseline-nli]`** from `pyproject.toml` (see repository). Typical install:
+
+```bash
+python -m pip install -e '.[dev,baseline,baseline-nli]'
+```
+
+Omit **`[baseline]`** if BERTScore is not needed. Use a **pinned** `transformers` / PyTorch / CUDA stack for published results.
+
+### Recording shape (planned)
+
+When implemented, writers add **`m3.nli`** next to `lexical` / `bertscore`:
+
+```json
+{
+  "m3": {
+    "version": "3",
+    "lexical": {
+      "sequence_ratio": 0.73,
+      "method": "difflib.SequenceMatcher"
+    },
+    "bertscore": {
+      "precision": 0.81,
+      "recall": 0.79,
+      "f1": 0.80,
+      "lang": "en",
+      "method": "bert-score"
+    },
+    "nli": {
+      "method": "transformers-pipeline",
+      "model_id": "roberta-large-mnli",
+      "premise": "source",
+      "hypothesis": "output",
+      "label": "neutral",
+      "scores": {
+        "entailment": 0.12,
+        "neutral": 0.55,
+        "contradiction": 0.33
+      }
+    }
+  }
+}
+```
+
+- **`label`**: argmax class name (lowercase, pipeline-dependent label set).
+- **`scores`**: probabilities keyed by class name; keys must stay stable for a given **`model_id`**.
+- **`model_id`**: Hugging Face hub id or local path string used for reproducibility.
+
+**Version rule:** set **`m3.version` to `"3"`** whenever **`m3.nli`** is written, even if BERTScore is omitted (lexical + NLI only).
+
+### Inference outline (implementation checklist)
+
+1. **Batching:** load the pipeline or model **once**, score rows in batches (same pattern as BERTScore).
+2. **Truncation:** enforce `max_length` consistently; record whether truncation occurred for any pilot sample.
+3. **Multilingual pilots:** restrict phase 3 to English rows **or** pick a multilingual NLI checkpoint and document **`model_id`**.
+4. **CLI:** extend `run_baselines.py` with `--nli` / `--nli-model` once implemented; lazy-import heavy modules (mirroring `bertscore_m3.py`).
+
+### Why no code yet
+
+NLI is checkpoint- and latency-sensitive; defining the **`m3.nli`** contract first avoids schema churn once a default model is chosen.
+
+## CLI (phase 1–2)
+
+[`scripts/run_baselines.py`](../scripts/run_baselines.py) reads an input JSONL of samples, computes phase-1 metrics, **merges** into `baseline_scores`, and writes JSONL. With **`--bertscore`**, it also merges phase 2 after `[baseline]` is installed. Phase 3 NLI flags are **not** wired yet. Extra per-line keys (for example `source_ja`) are preserved.
 
 ## Related work (historical)
 
-Phase 1 originally excluded neural baselines; phase 2 adds BERTScore as the first optional neural metric behind `[baseline]`.
+Phase 1 originally excluded neural baselines; phase 2 adds BERTScore behind `[baseline]`. Phase 3 reserves **`[baseline-nli]`** and `m3.nli` pending implementation.
