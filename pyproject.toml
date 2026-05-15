@@ -20,6 +20,10 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.4"
 ]
+# Heavy (torch). Used by optional BERTScore baselines — see docs/milestone3_baseline_plan.md
+baseline = [
+  "bert-score>=0.3.13",
+]
 
 [tool.setuptools.packages.find]
 include = ["rde_eval*"]

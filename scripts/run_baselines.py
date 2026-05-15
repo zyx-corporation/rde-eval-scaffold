@@ -14,26 +14,32 @@ from rde_eval.baselines import merge_milestone3_baseline
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Merge Milestone 3 phase-1 baselines (lexical) into baseline_scores."
+        description=(
+            "Merge Milestone 3 baselines (lexical; optional BERTScore) into baseline_scores."
+        ),
     )
     parser.add_argument("--input", required=True, help="Input sample JSONL.")
     parser.add_argument("--output", required=True, help="Output JSONL path.")
+    parser.add_argument(
+        "--bertscore",
+        action="store_true",
+        help="Also compute BERTScore (requires: pip install -e '.[baseline]').",
+    )
+    parser.add_argument(
+        "--bertscore-lang",
+        default="en",
+        help="Language code passed to bert-score (default: en).",
+    )
     return parser.parse_args()
 
 
-def _process_line(data: dict[str, Any], *, line_number: int) -> dict[str, Any]:
+def _require_row_fields(data: dict[str, Any], *, line_number: int) -> tuple[str, str, str]:
     missing = [k for k in ("id", "source", "output") if not data.get(k)]
     if missing:
         raise ValueError(
             f"line {line_number}: missing required fields for baselines: {', '.join(missing)}"
         )
-    source = str(data["source"])
-    output = str(data["output"])
-    existing = data.get("baseline_scores")
-    merged = merge_milestone3_baseline(existing, source=source, output=output)
-    out = dict(data)
-    out["baseline_scores"] = merged
-    return out
+    return str(data["id"]), str(data["source"]), str(data["output"])
 
 
 def main() -> None:
@@ -43,10 +49,8 @@ def main() -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     n = 0
     try:
-        with (
-            input_path.open("r", encoding="utf-8") as in_handle,
-            output_path.open("w", encoding="utf-8") as out_handle,
-        ):
+        parsed_rows: list[dict[str, Any]] = []
+        with input_path.open("r", encoding="utf-8") as in_handle:
             for line_number, line in enumerate(in_handle, start=1):
                 stripped = line.strip()
                 if not stripped:
@@ -57,10 +61,41 @@ def main() -> None:
                     raise ValueError(f"line {line_number}: invalid JSON: {exc}") from exc
                 if not isinstance(data, dict):
                     raise ValueError(f"line {line_number}: expected JSON object")
-                row = _process_line(data, line_number=line_number)
+                _require_row_fields(data, line_number=line_number)
+                parsed_rows.append(dict(data))
+
+        for row in parsed_rows:
+            merged = merge_milestone3_baseline(
+                row.get("baseline_scores"),
+                source=str(row["source"]),
+                output=str(row["output"]),
+            )
+            row["baseline_scores"] = merged
+
+        if args.bertscore:
+            from rde_eval.bertscore_m3 import compute_bertscore_batch
+
+            bscores = compute_bertscore_batch(
+                [str(r["source"]) for r in parsed_rows],
+                [str(r["output"]) for r in parsed_rows],
+                lang=str(args.bertscore_lang),
+            )
+            if len(bscores) != len(parsed_rows):
+                raise ValueError("internal error: BERTScore batch length mismatch")
+            for row, bs in zip(parsed_rows, bscores, strict=True):
+                merged = merge_milestone3_baseline(
+                    row["baseline_scores"],
+                    source=str(row["source"]),
+                    output=str(row["output"]),
+                    bertscore=bs,
+                )
+                row["baseline_scores"] = merged
+
+        with output_path.open("w", encoding="utf-8") as out_handle:
+            for row in parsed_rows:
                 out_handle.write(json.dumps(row, ensure_ascii=False) + "\n")
                 n += 1
-    except (OSError, ValueError) as exc:
+    except (ImportError, OSError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
     print(f"Wrote {n} samples with Milestone 3 baselines -> {args.output}")

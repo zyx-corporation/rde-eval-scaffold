@@ -99,6 +99,10 @@ Goal: compare RDE-style evaluation against existing methods.
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
+**Phase 2 (optional):** BERTScore via `pip install -e '.[baseline]'`, then add `--bertscore` and optionally `--bertscore-lang`. See the same doc for the `baseline_scores.m3` contract.
+
+**Notebook:** exploratory join of lexical ratio vs `human_annotation` — [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb).
+
 (`PYTHONPATH=.` or `pip install -e '.[dev]'` required so `rde_eval` imports resolve.)
 
 ### Milestone 4: Annotation Reliability
@@ -123,9 +127,12 @@ rde-eval-scaffold/
   data/
     samples.jsonl
     README.md
+  notebooks/
+    m3_lexical_vs_human.ipynb
   rde_eval/
     __init__.py
     baselines.py
+    bertscore_m3.py
     schema.py
     classifier.py
     evaluator.py

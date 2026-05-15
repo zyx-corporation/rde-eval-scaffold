@@ -25,9 +25,17 @@ def milestone3_lexical_scores(source: str, output: str) -> dict[str, Any]:
 
 
 def merge_milestone3_baseline(
-    existing_baseline_scores: Any, *, source: str, output: str
+    existing_baseline_scores: Any,
+    *,
+    source: str,
+    output: str,
+    bertscore: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return new ``baseline_scores`` dict with ``m3.version`` / ``m3.lexical`` merged in."""
+    """Return new ``baseline_scores`` dict with ``m3.version`` / ``m3.lexical`` merged in.
+
+    If ``bertscore`` is set, it is stored under ``m3["bertscore"]`` and
+    ``m3["version"]`` becomes ``"2"`` (lexical-only remains ``"1"``).
+    """
 
     base: dict[str, Any]
     if isinstance(existing_baseline_scores, dict):
@@ -41,7 +49,11 @@ def merge_milestone3_baseline(
     else:
         m3 = {}
 
-    m3["version"] = M3_SCHEMA_VERSION
     m3["lexical"] = milestone3_lexical_scores(source, output)
+    if bertscore is not None:
+        m3["bertscore"] = bertscore
+        m3["version"] = "2"
+    else:
+        m3["version"] = M3_SCHEMA_VERSION
     base["m3"] = m3
     return base

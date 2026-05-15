@@ -39,3 +39,20 @@ def test_merge_overwrites_m3_lexical() -> None:
     }
     merged = merge_milestone3_baseline(existing, source="x", output="x")
     assert merged["m3"]["lexical"]["sequence_ratio"] == 1.0
+
+
+def test_merge_with_bertscore_bumps_version() -> None:
+    merged = merge_milestone3_baseline(
+        {},
+        source="a",
+        output="b",
+        bertscore={
+            "f1": 0.5,
+            "precision": 0.4,
+            "recall": 0.6,
+            "lang": "en",
+            "method": "bert-score",
+        },
+    )
+    assert merged["m3"]["version"] == "2"
+    assert merged["m3"]["bertscore"]["f1"] == 0.5
