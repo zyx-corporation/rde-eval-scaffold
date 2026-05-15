@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Milestone 2 prompt-evaluator pipeline entrypoint (stub mode; no live API).
+"""Milestone 2 prompt-evaluator pipeline entrypoint.
 
 Reads pilot-style JSONL and writes normalized LLM annotation JSONL per
 ``docs/prompt_evaluator_io_contract.md``.
+
+Modes:
+  stub   — fixed in-process JSON per row (no network)
+  replay — normalize captured ``raw_output`` rows from ``--raw-jsonl``
 """
 
 from __future__ import annotations
@@ -13,7 +17,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from rde_eval.prompt_eval import normalize_model_output, stub_model_raw_output
+from rde_eval.prompt_eval import (
+    build_failure_record,
+    load_raw_outputs_by_id,
+    normalize_model_output,
+    stub_model_raw_output,
+)
 
 
 def _load_jsonl_objects(path: Path) -> list[dict[str, Any]]:
@@ -42,7 +51,7 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Milestone 2 prompt evaluator (stub / normalization only; no API)."
+        description="Milestone 2 prompt evaluator (stub / replay normalization; no live API)."
     )
     parser.add_argument(
         "--input", required=True, help="Input pilot JSONL (e.g. data/pilot_30.jsonl)."
@@ -50,9 +59,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", required=True, help="Output JSONL path for normalized records.")
     parser.add_argument(
         "--mode",
-        choices=("stub",),
+        choices=("stub", "replay"),
         default="stub",
-        help="stub: write contract-shaped records using a fixed in-process JSON payload.",
+        help="stub: fixed JSON per row; replay: normalize --raw-jsonl captures by id.",
+    )
+    parser.add_argument(
+        "--raw-jsonl",
+        help="Replay mode: JSONL with id + raw_output per line (model capture).",
     )
     parser.add_argument("--annotator-type", default="llm", help="Provenance: annotator_type.")
     parser.add_argument("--annotator-id", default="stub", help="Provenance: annotator_id.")
@@ -79,6 +92,10 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Error: input not found: {input_path}", file=sys.stderr)
         sys.exit(1)
 
+    if args.mode == "replay" and not args.raw_jsonl:
+        print("Error: --mode replay requires --raw-jsonl", file=sys.stderr)
+        sys.exit(1)
+
     provenance = {
         "annotator_type": args.annotator_type,
         "annotator_id": args.annotator_id,
@@ -93,6 +110,18 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
+    raw_by_id: dict[str, str] = {}
+    if args.mode == "replay":
+        raw_path = Path(args.raw_jsonl)
+        if not raw_path.is_file():
+            print(f"Error: raw JSONL not found: {raw_path}", file=sys.stderr)
+            sys.exit(1)
+        try:
+            raw_by_id = load_raw_outputs_by_id(raw_path)
+        except ValueError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
+
     raw_stub = stub_model_raw_output()
     out_rows: list[dict[str, Any]] = []
     for row in records_in:
@@ -102,6 +131,20 @@ def main(argv: list[str] | None = None) -> None:
         sample_id = str(row["id"])
         if args.mode == "stub":
             out_rows.append(normalize_model_output(sample_id, provenance, raw_stub))
+        elif args.mode == "replay":
+            raw = raw_by_id.get(sample_id)
+            if raw is None:
+                out_rows.append(
+                    build_failure_record(
+                        sample_id,
+                        provenance,
+                        error_type="missing_raw_output",
+                        error_message=f"No raw_output for id {sample_id!r} in replay file.",
+                        raw_output="",
+                    )
+                )
+            else:
+                out_rows.append(normalize_model_output(sample_id, provenance, raw))
 
     try:
         _write_jsonl(output_path, out_rows)
@@ -109,7 +152,8 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Wrote {len(out_rows)} prompt-eval records -> {output_path}")
+    ok_count = sum(1 for r in out_rows if r.get("normalization_status") == "ok")
+    print(f"Wrote {len(out_rows)} prompt-eval records ({ok_count} ok) -> {output_path}")
 
 
 if __name__ == "__main__":

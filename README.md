@@ -38,14 +38,25 @@ Goal: establish a reproducible scaffold for RDE pilot studies. Scope and complet
 
 Goal: add a prompt-based evaluator using the same schema and annotation guide.
 
-I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). A **stub** entrypoint (no model API) writes normalized JSONL for pipeline wiring:
+I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). Entrypoints (no live API yet):
 
 ```bash
+# Stub — fixed JSON per row
 python scripts/run_prompt_eval.py \
   --input data/pilot_30.jsonl \
   --output results/prompt_eval_stub.jsonl \
   --annotation-run-id "$(date +%Y%m%d)-stub-local"
+
+# Replay — normalize captured raw_output JSONL (id + raw_output per line)
+python scripts/run_prompt_eval.py \
+  --mode replay \
+  --input data/pilot_30.jsonl \
+  --raw-jsonl path/to/captures.jsonl \
+  --output results/prompt_eval_replay.jsonl \
+  --annotation-run-id "$(date +%Y%m%d)-replay-local"
 ```
+
+Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`).
 
 ### Milestone 3: Baseline Comparison
 

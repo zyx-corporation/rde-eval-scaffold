@@ -28,7 +28,12 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 ## Milestone 2（着手済み・スタブ）
 
-入出力の契約は [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md)。API を呼ばない **`run_prompt_eval.py --mode stub`** で、正規化済み注釈 JSONL の書き出しパイプラインだけを先に固定できます。
+入出力の契約は [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md)。
+
+- **`--mode stub`** … API なし。固定 JSON を行ごとに正規化。
+- **`--mode replay --raw-jsonl PATH`** … 保存済み `id` + `raw_output` をマージして正規化。
+
+プロンプト文面は `rde_eval.prompt_template`（`rde-prompt-eval-v1`）。
 
 ```bash
 python scripts/run_prompt_eval.py \
