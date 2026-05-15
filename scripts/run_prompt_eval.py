@@ -310,9 +310,7 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     if args.mode != "live" and (
-        args.max_retries != 3
-        or args.retry_backoff_sec != 1.0
-        or args.request_delay_sec != 0.0
+        args.max_retries != 3 or args.retry_backoff_sec != 1.0 or args.request_delay_sec != 0.0
     ):
         print(
             "Error: --max-retries, --retry-backoff-sec, and --request-delay-sec "
