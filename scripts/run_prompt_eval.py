@@ -121,6 +121,57 @@ def evaluate_row(
     raise ValueError(f"Unknown mode: {mode!r}")
 
 
+def run_evaluation_records(
+    records_in: list[dict[str, Any]],
+    *,
+    mode: str,
+    output_path: Path,
+    provenance: dict[str, str],
+    raw_stub: str,
+    raw_by_id: dict[str, str],
+    prompt_version: str,
+    llm_call: Callable[[list[dict[str, str]]], str] | None = None,
+    captures_path: Path | None = None,
+) -> tuple[int, int]:
+    """Process all rows. Returns ``(total_written, ok_count)``.
+
+    In live mode, each normalized record is appended to *output_path* immediately
+    so partial progress survives interrupts. Stub and replay write in one batch at the end.
+    """
+    incremental = mode == "live"
+    if incremental and output_path.exists():
+        output_path.unlink()
+    if captures_path is not None and captures_path.exists():
+        captures_path.unlink()
+
+    buffer: list[dict[str, Any]] = []
+    ok_count = 0
+    for row in records_in:
+        rec, raw_capture = evaluate_row(
+            row,
+            mode=mode,
+            provenance=provenance,
+            raw_stub=raw_stub,
+            raw_by_id=raw_by_id,
+            prompt_version=prompt_version,
+            llm_call=llm_call,
+        )
+        if rec.get("normalization_status") == "ok":
+            ok_count += 1
+        if incremental:
+            _append_jsonl(output_path, rec)
+        else:
+            buffer.append(rec)
+        if raw_capture is not None and captures_path is not None:
+            _append_jsonl(captures_path, {"id": str(row["id"]), "raw_output": raw_capture})
+
+    if not incremental:
+        _write_jsonl(output_path, buffer)
+
+    total = len(records_in)
+    return total, ok_count
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Milestone 2 prompt evaluator (stub / replay / live OpenAI-compatible API)."
@@ -259,43 +310,28 @@ def main(argv: list[str] | None = None) -> None:
 
         llm_call = _call
 
-    raw_stub = stub_model_raw_output()
-    captures_path = Path(args.raw_captures_out) if args.raw_captures_out else None
-    if captures_path is not None and captures_path.exists():
-        captures_path.unlink()
-
-    out_rows: list[dict[str, Any]] = []
     try:
-        for row in records_in:
-            rec, raw_capture = evaluate_row(
-                row,
-                mode=args.mode,
-                provenance=provenance,
-                raw_stub=raw_stub,
-                raw_by_id=raw_by_id,
-                prompt_version=prompt_version,
-                llm_call=llm_call,
-            )
-            out_rows.append(rec)
-            if raw_capture is not None and captures_path is not None:
-                _append_jsonl(
-                    captures_path,
-                    {"id": str(row["id"]), "raw_output": raw_capture},
-                )
+        total, ok_count = run_evaluation_records(
+            records_in,
+            mode=args.mode,
+            output_path=output_path,
+            provenance=provenance,
+            raw_stub=stub_model_raw_output(),
+            raw_by_id=raw_by_id,
+            prompt_version=prompt_version,
+            llm_call=llm_call,
+            captures_path=Path(args.raw_captures_out) if args.raw_captures_out else None,
+        )
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
-
-    try:
-        _write_jsonl(output_path, out_rows)
     except OSError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    ok_count = sum(1 for r in out_rows if r.get("normalization_status") == "ok")
-    msg = f"Wrote {len(out_rows)} prompt-eval records ({ok_count} ok) -> {output_path}"
-    if captures_path is not None:
-        msg += f"; raw captures -> {captures_path}"
+    msg = f"Wrote {total} prompt-eval records ({ok_count} ok) -> {output_path}"
+    if args.raw_captures_out:
+        msg += f"; raw captures -> {args.raw_captures_out}"
     print(msg)
 
 

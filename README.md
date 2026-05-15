@@ -38,7 +38,7 @@ Goal: establish a reproducible scaffold for RDE pilot studies. Scope and complet
 
 Goal: add a prompt-based evaluator using the same schema and annotation guide.
 
-I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). Entrypoints (no live API yet):
+I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). Entrypoints:
 
 ```bash
 # Stub — fixed JSON per row
@@ -66,7 +66,24 @@ python scripts/run_prompt_eval.py \
   --annotation-run-id "$(date +%Y%m%d)-live" \
   --limit 2 \
   --raw-captures-out results/prompt_eval_captures.jsonl
+
+# Live — DeepSeek (OpenAI-compatible endpoint)
+export DEEPSEEK_API_KEY=...
+python scripts/run_prompt_eval.py \
+  --mode live \
+  --model deepseek-chat \
+  --api-base-url https://api.deepseek.com/v1 \
+  --api-key-env DEEPSEEK_API_KEY \
+  --annotator-id deepseek \
+  --prompt-version rde-prompt-eval-v1 \
+  --input data/pilot_30.jsonl \
+  --output results/prompt_eval_deepseek_live.jsonl \
+  --raw-captures-out results/prompt_eval_deepseek_captures.jsonl \
+  --annotation-run-id "$(date +%Y%m%d)-deepseek-live" \
+  --limit 3
 ```
+
+**Live mode** appends each normalized row to `--output` as it completes (partial results survive Ctrl-C). Use `--raw-captures-out` to save model JSON for `--mode replay`.
 
 Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client: `rde_eval.llm_client`.
 
