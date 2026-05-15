@@ -147,6 +147,34 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
     )
 
 
+def format_comparison_summary(result: dict[str, Any]) -> str:
+    """Human-readable summary for terminal output."""
+    pct = lambda v: f"{100.0 * v:.1f}%" if isinstance(v, (int, float)) else str(v)
+
+    lines = [
+        "RDE annotation comparison summary",
+        f"  Total IDs (union):              {result.get('total', 0)}",
+        f"  Comparable pairs:               {result.get('comparable', 0)}",
+        f"  Label agreement:                {pct(result.get('label_agreement'))}",
+        f"  Criticality agreement:          {pct(result.get('criticality_agreement'))}",
+        f"  Risk flag exact agreement:      {pct(result.get('risk_flag_exact_agreement'))}",
+        f"  Risk flag precision (micro):    {pct(result.get('risk_flag_precision'))}",
+        f"  Risk flag recall (micro):       {pct(result.get('risk_flag_recall'))}",
+        f"  Risk flag F1 (micro):           {pct(result.get('risk_flag_f1'))}",
+        f"  Disagreements:                  {len(result.get('disagreements') or [])}",
+    ]
+    missing_ref = result.get("missing_reference") or []
+    missing_cand = result.get("missing_candidate") or []
+    failed = result.get("candidate_normalization_failed") or []
+    if missing_ref:
+        lines.append(f"  Missing reference:              {len(missing_ref)}")
+    if missing_cand:
+        lines.append(f"  Missing candidate:              {len(missing_cand)}")
+    if failed:
+        lines.append(f"  Candidate normalization failed: {len(failed)}")
+    return "\n".join(lines)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compare RDE annotation JSONL files.")
     parser.add_argument("--reference", required=True)
@@ -157,6 +185,11 @@ def parse_args() -> argparse.Namespace:
         help="Reserved for future source-aware comparison.",
     )
     parser.add_argument("--output", required=True)
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print a human-readable summary to stdout after writing JSON.",
+    )
     return parser.parse_args()
 
 
@@ -168,6 +201,9 @@ def main() -> None:
     )
     write_json(Path(args.output), result)
     print(f"Compared {result['comparable']} records -> {args.output}")
+    if args.summary:
+        print()
+        print(format_comparison_summary(result))
 
 
 if __name__ == "__main__":

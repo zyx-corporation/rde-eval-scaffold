@@ -83,11 +83,11 @@ python scripts/run_prompt_eval.py \
   --limit 3
 ```
 
-**Live mode** appends each normalized row to `--output` as it completes (partial results survive Ctrl-C). Use `--raw-captures-out` to save model JSON for `--mode replay`.
+**Live mode** appends each normalized row to `--output` as it completes (partial results survive Ctrl-C). Re-run with `--resume` to skip IDs already in `--output` and append the rest. Use `--raw-captures-out` to save model JSON for `--mode replay`.
 
 Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client: `rde_eval.llm_client`.
 
-`compare_annotations.py` excludes candidate rows with `normalization_status: failed` from agreement metrics and lists them under `candidate_normalization_failed`.
+`compare_annotations.py` excludes candidate rows with `normalization_status: failed` from agreement metrics and lists them under `candidate_normalization_failed`. Add `--summary` to print agreement rates and disagreement counts to stdout.
 
 ### Milestone 3: Baseline Comparison
 

@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from compare_annotations import candidate_is_normalized, compare_annotations
+from compare_annotations import (
+    candidate_is_normalized,
+    compare_annotations,
+    format_comparison_summary,
+)
 
 
 def test_candidate_is_normalized_legacy_rows() -> None:
@@ -38,3 +42,23 @@ def test_compare_skips_failed_candidate_normalization() -> None:
     assert result["comparable"] == 1
     assert result["candidate_normalization_failed"] == ["b"]
     assert result["label_agreement"] == 1.0
+
+
+def test_format_comparison_summary_includes_key_metrics() -> None:
+    result = {
+        "total": 3,
+        "comparable": 0,
+        "label_agreement": 0.0,
+        "criticality_agreement": 0.0,
+        "risk_flag_exact_agreement": 0.0,
+        "risk_flag_precision": 0.0,
+        "risk_flag_recall": 0.0,
+        "risk_flag_f1": 0.0,
+        "disagreements": [],
+        "candidate_normalization_failed": ["b"],
+    }
+    text = format_comparison_summary(result)
+    assert "RDE annotation comparison summary" in text
+    assert "Comparable pairs:               0" in text
+    assert "Candidate normalization failed: 1" in text
+    assert "100.0%" not in text

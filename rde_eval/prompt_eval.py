@@ -226,3 +226,22 @@ def load_raw_outputs_by_id(path: str | Path) -> dict[str, str]:
                 raise ValueError(f"Line {line_number}: missing 'raw_output' for id {sample_id!r}")
             by_id[sample_id] = raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)
     return by_id
+
+
+def load_completed_ids(output_path: Path) -> set[str]:
+    """Collect ``id`` values already present in a normalized output JSONL file."""
+    ids: set[str] = set()
+    if not output_path.is_file():
+        return ids
+    with output_path.open(encoding="utf-8") as handle:
+        for line in handle:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                record = json.loads(stripped)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(record, dict) and "id" in record:
+                ids.add(str(record["id"]))
+    return ids

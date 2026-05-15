@@ -24,6 +24,7 @@ from rde_eval.llm_client import LlmApiError, chat_completion
 from rde_eval.prompt_eval import (
     build_failure_record,
     extract_prompt_input,
+    load_completed_ids,
     load_raw_outputs_by_id,
     normalize_model_output,
     stub_model_raw_output,
@@ -132,21 +133,32 @@ def run_evaluation_records(
     prompt_version: str,
     llm_call: Callable[[list[dict[str, str]]], str] | None = None,
     captures_path: Path | None = None,
-) -> tuple[int, int]:
-    """Process all rows. Returns ``(total_written, ok_count)``.
+    resume: bool = False,
+) -> tuple[int, int, int]:
+    """Process rows. Returns ``(processed_new, ok_new, skipped_resume)``.
 
     In live mode, each normalized record is appended to *output_path* immediately
-    so partial progress survives interrupts. Stub and replay write in one batch at the end.
+    so partial progress survives interrupts. With *resume* and live mode, IDs already
+    in *output_path* are skipped and the file is not truncated.
     """
     incremental = mode == "live"
-    if incremental and output_path.exists():
+    if incremental and not resume and output_path.exists():
         output_path.unlink()
-    if captures_path is not None and captures_path.exists():
+    if captures_path is not None and not resume and captures_path.exists():
         captures_path.unlink()
 
+    completed_ids = load_completed_ids(output_path) if resume and incremental else set()
+
     buffer: list[dict[str, Any]] = []
-    ok_count = 0
+    ok_new = 0
+    processed_new = 0
+    skipped = 0
     for row in records_in:
+        sample_id = str(row["id"])
+        if resume and incremental and sample_id in completed_ids:
+            skipped += 1
+            continue
+
         rec, raw_capture = evaluate_row(
             row,
             mode=mode,
@@ -156,20 +168,20 @@ def run_evaluation_records(
             prompt_version=prompt_version,
             llm_call=llm_call,
         )
+        processed_new += 1
         if rec.get("normalization_status") == "ok":
-            ok_count += 1
+            ok_new += 1
         if incremental:
             _append_jsonl(output_path, rec)
         else:
             buffer.append(rec)
         if raw_capture is not None and captures_path is not None:
-            _append_jsonl(captures_path, {"id": str(row["id"]), "raw_output": raw_capture})
+            _append_jsonl(captures_path, {"id": sample_id, "raw_output": raw_capture})
 
     if not incremental:
         _write_jsonl(output_path, buffer)
 
-    total = len(records_in)
-    return total, ok_count
+    return processed_new, ok_new, skipped
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -216,6 +228,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--raw-captures-out",
         help="Live mode: append id + raw_output JSONL for replay (--mode replay).",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Live mode: skip IDs already in --output; append without truncating.",
+    )
     parser.add_argument("--annotator-type", default="llm", help="Provenance: annotator_type.")
     parser.add_argument("--annotator-id", default="stub", help="Provenance: annotator_id.")
     parser.add_argument("--model", default="stub-model", help="Provenance / live: model id.")
@@ -251,6 +268,10 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.raw_captures_out and args.mode != "live":
         print("Error: --raw-captures-out is only valid with --mode live", file=sys.stderr)
+        sys.exit(1)
+
+    if args.resume and args.mode != "live":
+        print("Error: --resume is only valid with --mode live", file=sys.stderr)
         sys.exit(1)
 
     prompt_version = args.prompt_version
@@ -311,7 +332,7 @@ def main(argv: list[str] | None = None) -> None:
         llm_call = _call
 
     try:
-        total, ok_count = run_evaluation_records(
+        processed, ok_count, skipped = run_evaluation_records(
             records_in,
             mode=args.mode,
             output_path=output_path,
@@ -321,6 +342,7 @@ def main(argv: list[str] | None = None) -> None:
             prompt_version=prompt_version,
             llm_call=llm_call,
             captures_path=Path(args.raw_captures_out) if args.raw_captures_out else None,
+            resume=args.resume,
         )
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -329,7 +351,9 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    msg = f"Wrote {total} prompt-eval records ({ok_count} ok) -> {output_path}"
+    msg = f"Processed {processed} new prompt-eval rows ({ok_count} ok) -> {output_path}"
+    if args.resume and skipped:
+        msg += f"; skipped {skipped} already present"
     if args.raw_captures_out:
         msg += f"; raw captures -> {args.raw_captures_out}"
     print(msg)
