@@ -3,17 +3,49 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.request
+from email.utils import parsedate_to_datetime
 from typing import Any
+
+
+def _parse_retry_after_header(value: str | None) -> float | None:
+    if not value or not value.strip():
+        return None
+    stripped = value.strip()
+    try:
+        return max(0.0, float(stripped))
+    except ValueError:
+        pass
+    try:
+        retry_at = parsedate_to_datetime(stripped)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return max(0.0, retry_at.timestamp() - time.time())
+
+
+def _http_error_retry_after(exc: urllib.error.HTTPError) -> float | None:
+    headers = exc.headers
+    if headers is None:
+        return None
+    raw = headers.get("Retry-After")
+    return _parse_retry_after_header(raw)
 
 
 class LlmApiError(Exception):
     """Raised when the chat completions API returns an error or malformed payload."""
 
-    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        retry_after_sec: float | None = None,
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
+        self.retry_after_sec = retry_after_sec
 
 
 def _parse_assistant_content(payload: dict[str, Any]) -> str:
@@ -73,6 +105,7 @@ def chat_completion(
         raise LlmApiError(
             f"HTTP {exc.code}: {detail[:500]}",
             status_code=exc.code,
+            retry_after_sec=_http_error_retry_after(exc),
         ) from exc
     except urllib.error.URLError as exc:
         raise LlmApiError(f"Network error: {exc.reason}") from exc

@@ -53,6 +53,23 @@ def test_chat_completion_raises_on_http_error() -> None:
             chat_completion([{"role": "user", "content": "x"}], model="m", api_key="k")
 
 
+def test_chat_completion_parses_retry_after_on_429() -> None:
+    import urllib.error
+
+    err = urllib.error.HTTPError(
+        url="http://x",
+        code=429,
+        msg="Too Many Requests",
+        hdrs={"Retry-After": "2"},
+        fp=mock.Mock(read=mock.Mock(return_value=b'{"error":"rate limit"}')),
+    )
+    with mock.patch("urllib.request.urlopen", side_effect=err):
+        with pytest.raises(LlmApiError) as exc_info:
+            chat_completion([{"role": "user", "content": "x"}], model="m", api_key="k")
+    assert exc_info.value.status_code == 429
+    assert exc_info.value.retry_after_sec == pytest.approx(2.0)
+
+
 def test_chat_completion_rejects_empty_api_key() -> None:
     with pytest.raises(LlmApiError, match="API key is empty"):
         chat_completion([], model="m", api_key="  ")
