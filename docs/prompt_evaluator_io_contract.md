@@ -199,6 +199,6 @@ The evaluator output is an auditable candidate annotation layer, not a truth lay
 
 - **`--mode stub`** — one normalized record per input pilot row using a fixed in-process JSON payload (no network).
 - **`--mode replay --raw-jsonl PATH`** — merge captured `id` + `raw_output` lines and normalize (for API responses saved offline).
-- **`--mode live`** — call an OpenAI-compatible `/chat/completions` endpoint per row (`OPENAI_API_KEY` or `--api-key-env`), then normalize. Each row is **appended to `--output` immediately** (partial progress survives interruption). **`--resume`** skips IDs already present in `--output` and continues appending without truncating the file. API failures become `api_error` failure rows.
+- **`--mode live`** — call an OpenAI-compatible `/chat/completions` endpoint per row (`OPENAI_API_KEY` or `--api-key-env`), then normalize. Each row is **appended to `--output` immediately** (partial progress survives interruption). **`--resume`** skips IDs already present in `--output` (and in `--raw-captures-out` when set) and continues appending without truncating those files. Transient HTTP errors (429, 5xx, network) may be retried via `--max-retries` / `--retry-backoff-sec` (honours `Retry-After` when present); `--request-delay-sec` adds pacing between row calls. Exhausted retries become `api_error` failure rows.
 
 Both stub/replay exercise `rde_eval.prompt_eval` normalization and provenance fields. Live mode uses `rde_eval.prompt_template` (`rde-prompt-eval-v1`) and `rde_eval.llm_client` (stdlib `urllib` only).

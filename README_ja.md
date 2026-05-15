@@ -38,7 +38,7 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 DeepSeek 例（`--api-base-url https://api.deepseek.com/v1`、`--api-key-env DEEPSEEK_API_KEY`）は英語 README の Milestone 2 節を参照。
 
-live 実行時は行ごとに `--output` へ追記され、中断しても部分結果が残ります。`--resume` で既存 ID をスキップして追記再開できます。`--raw-captures-out` で replay 用の `id` + `raw_output` を保存できます。`compare_annotations.py` は candidate の `normalization_status: failed` を一致率から除外し、`candidate_normalization_failed` に列挙します。`--summary` で一致率・不一致件数を標準出力に表示します。
+live 実行時は行ごとに `--output` へ追記され、中断しても部分結果が残ります。`--resume` で `--output`（および `--raw-captures-out` 指定時は captures）の既存 ID をスキップして追記再開できます。429/5xx/ネットワーク障害は `--max-retries` と `--retry-backoff-sec` でリトライし、`--request-delay-sec` で呼び出し間隔を調整できます。`--raw-captures-out` で replay 用の `id` + `raw_output` を保存できます。`compare_annotations.py` は candidate の `normalization_status: failed` を一致率から除外し、`candidate_normalization_failed` に列挙します。`--summary` で一致率・不一致件数を標準出力に表示します。
 
 ```bash
 python scripts/run_prompt_eval.py \

@@ -16,11 +16,13 @@ import argparse
 import json
 import os
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from rde_eval.llm_client import LlmApiError, chat_completion
+from rde_eval.llm_client import LlmApiError
+from rde_eval.llm_retry import chat_completion_with_retry
 from rde_eval.prompt_eval import (
     build_failure_record,
     extract_prompt_input,
@@ -134,6 +136,7 @@ def run_evaluation_records(
     llm_call: Callable[[list[dict[str, str]]], str] | None = None,
     captures_path: Path | None = None,
     resume: bool = False,
+    request_delay_sec: float = 0.0,
 ) -> tuple[int, int, int]:
     """Process rows. Returns ``(processed_new, ok_new, skipped_resume)``.
 
@@ -147,7 +150,13 @@ def run_evaluation_records(
     if captures_path is not None and not resume and captures_path.exists():
         captures_path.unlink()
 
-    completed_ids = load_completed_ids(output_path) if resume and incremental else set()
+    completed_ids: set[str] = set()
+    completed_capture_ids: set[str] = set()
+    if resume and incremental:
+        completed_ids = load_completed_ids(output_path)
+        if captures_path is not None:
+            completed_capture_ids = load_completed_ids(captures_path)
+            completed_ids |= completed_capture_ids
 
     buffer: list[dict[str, Any]] = []
     ok_new = 0
@@ -175,8 +184,16 @@ def run_evaluation_records(
             _append_jsonl(output_path, rec)
         else:
             buffer.append(rec)
-        if raw_capture is not None and captures_path is not None:
+        if (
+            raw_capture is not None
+            and captures_path is not None
+            and sample_id not in completed_capture_ids
+        ):
             _append_jsonl(captures_path, {"id": sample_id, "raw_output": raw_capture})
+            completed_capture_ids.add(sample_id)
+
+        if incremental and request_delay_sec > 0:
+            time.sleep(request_delay_sec)
 
     if not incremental:
         _write_jsonl(output_path, buffer)
@@ -233,6 +250,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Live mode: skip IDs already in --output; append without truncating.",
     )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=3,
+        help="Live mode: max retries per row on transient API errors (429/5xx/network).",
+    )
+    parser.add_argument(
+        "--retry-backoff-sec",
+        type=float,
+        default=1.0,
+        help="Live mode: base seconds for exponential backoff between retries.",
+    )
+    parser.add_argument(
+        "--request-delay-sec",
+        type=float,
+        default=0.0,
+        help="Live mode: minimum delay between completed row API calls.",
+    )
     parser.add_argument("--annotator-type", default="llm", help="Provenance: annotator_type.")
     parser.add_argument("--annotator-id", default="stub", help="Provenance: annotator_id.")
     parser.add_argument("--model", default="stub-model", help="Provenance / live: model id.")
@@ -272,6 +307,28 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.resume and args.mode != "live":
         print("Error: --resume is only valid with --mode live", file=sys.stderr)
+        sys.exit(1)
+
+    if args.mode != "live" and (
+        args.max_retries != 3
+        or args.retry_backoff_sec != 1.0
+        or args.request_delay_sec != 0.0
+    ):
+        print(
+            "Error: --max-retries, --retry-backoff-sec, and --request-delay-sec "
+            "are only valid with --mode live",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if args.max_retries < 0:
+        print("Error: --max-retries must be >= 0", file=sys.stderr)
+        sys.exit(1)
+    if args.retry_backoff_sec < 0:
+        print("Error: --retry-backoff-sec must be >= 0", file=sys.stderr)
+        sys.exit(1)
+    if args.request_delay_sec < 0:
+        print("Error: --request-delay-sec must be >= 0", file=sys.stderr)
         sys.exit(1)
 
     prompt_version = args.prompt_version
@@ -321,12 +378,14 @@ def main(argv: list[str] | None = None) -> None:
             sys.exit(1)
 
         def _call(messages: list[dict[str, str]]) -> str:
-            return chat_completion(
+            return chat_completion_with_retry(
                 messages,
                 model=args.model,
                 api_key=api_key,
                 base_url=args.api_base_url,
                 timeout_sec=args.timeout_sec,
+                max_retries=args.max_retries,
+                retry_backoff_sec=args.retry_backoff_sec,
             )
 
         llm_call = _call
@@ -343,6 +402,7 @@ def main(argv: list[str] | None = None) -> None:
             llm_call=llm_call,
             captures_path=Path(args.raw_captures_out) if args.raw_captures_out else None,
             resume=args.resume,
+            request_delay_sec=args.request_delay_sec,
         )
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)

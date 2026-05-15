@@ -83,7 +83,7 @@ python scripts/run_prompt_eval.py \
   --limit 3
 ```
 
-**Live mode** appends each normalized row to `--output` as it completes (partial results survive Ctrl-C). Re-run with `--resume` to skip IDs already in `--output` and append the rest. Use `--raw-captures-out` to save model JSON for `--mode replay`.
+**Live mode** appends each normalized row to `--output` as it completes (partial results survive Ctrl-C). Re-run with `--resume` to skip IDs already in `--output` (and in `--raw-captures-out`, when set) and append the rest. Transient API errors (429/5xx/network) retry with `--max-retries` and `--retry-backoff-sec`; pace calls with `--request-delay-sec`. Use `--raw-captures-out` to save model JSON for `--mode replay`.
 
 Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client: `rde_eval.llm_client`.
 
