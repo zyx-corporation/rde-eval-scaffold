@@ -26,27 +26,42 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
 
+## Milestone 2（着手済み・スタブ）
+
+入出力の契約は [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md)。API を呼ばない **`run_prompt_eval.py --mode stub`** で、正規化済み注釈 JSONL の書き出しパイプラインだけを先に固定できます。
+
+```bash
+python scripts/run_prompt_eval.py \
+  --input data/pilot_30.jsonl \
+  --output results/prompt_eval_stub.jsonl \
+  --annotation-run-id "$(date +%Y%m%d)-stub-local"
+```
+
 ## スクリプト実行の前提
 
-`scripts/run_eval.py` や `scripts/annotate_pilot.py` など、パッケージ `rde_eval` を import するスクリプトは、**editable install も `PYTHONPATH` も無い**状態で `python scripts/…` と実行すると `ModuleNotFoundError: No module named 'rde_eval'` になります。リポジトリのルートをカレントにして、次のいずれかを行ってください。
+`scripts/run_eval.py` や `scripts/annotate_pilot.py`、`scripts/run_prompt_eval.py` など、パッケージ `rde_eval` を import するスクリプトは、**editable install も `PYTHONPATH` も無い**状態で `python scripts/…` と実行すると `ModuleNotFoundError: No module named 'rde_eval'` になります。リポジトリのルートをカレントにして、次のいずれかを行ってください。
 
-1. **開発用の推奨:** `python -m pip install -e .[dev]`
+1. **開発用の推奨:** `python -m pip install -e '.[dev]'`（Zsh では `.[dev]` をクォート）
 2. **一時的な実行:** コマンドの先頭に `PYTHONPATH=.` を付ける（例: `PYTHONPATH=. python scripts/run_eval.py --help`）
 
 `export_results.py` は `rde_eval` に依存しませんが、他と同じ環境で動かすのが無難です。
 
 ## 最小の利用例
 
-`python -m pip install -e .` を済ませたあと（または各行の `python` の前に `PYTHONPATH=.` を付けて）:
+`python -m pip install -e '.[dev]'` を済ませたあと（または各行の `python` の前に `PYTHONPATH=.` を付けて）:
 
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+python scripts/run_prompt_eval.py \
+  --input data/samples.jsonl \
+  --output results/prompt_eval_stub.jsonl \
+  --annotation-run-id local-stub-1
 ```
 
 ## 開発
 
 ```bash
-python -m pip install -e .[dev]
+python -m pip install -e '.[dev]'
 pytest
 ```

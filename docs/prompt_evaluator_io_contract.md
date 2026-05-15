@@ -192,3 +192,7 @@ This specification exists to prevent:
 - undocumented alias mappings
 
 The evaluator output is an auditable candidate annotation layer, not a truth layer.
+
+## Reference implementation (stub)
+
+[`run_prompt_eval.py`](../scripts/run_prompt_eval.py) with `--mode stub` writes one normalized record per input pilot row using a fixed in-process JSON payload (no network). It exercises `rde_eval.prompt_eval` normalization and provenance fields; replace the stub with a live model caller behind the same normalization boundary.
