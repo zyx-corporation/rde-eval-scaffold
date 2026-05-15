@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from rde_eval.schema import CRITICALITY_VALUES, KNOWN_RISK_FLAGS, PRIMARY_LABEL_VALUES
@@ -194,3 +195,34 @@ def stub_model_raw_output() -> str:
         },
         ensure_ascii=False,
     )
+
+
+def load_raw_outputs_by_id(path: str | Path) -> dict[str, str]:
+    """Load ``{id: raw_output}`` from a JSONL file of replay captures.
+
+    Each line must be a JSON object with ``id`` and ``raw_output`` (string).
+    Duplicate IDs raise ``ValueError``.
+    """
+    p = Path(path)
+    by_id: dict[str, str] = {}
+    with p.open(encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                row = json.loads(stripped)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid JSON at line {line_number}: {exc}") from exc
+            if not isinstance(row, dict):
+                raise ValueError(f"Line {line_number}: expected JSON object")
+            if "id" not in row:
+                raise ValueError(f"Line {line_number}: missing 'id'")
+            sample_id = str(row["id"])
+            if sample_id in by_id:
+                raise ValueError(f"Duplicate id in raw JSONL: {sample_id!r}")
+            raw = row.get("raw_output")
+            if raw is None:
+                raise ValueError(f"Line {line_number}: missing 'raw_output' for id {sample_id!r}")
+            by_id[sample_id] = raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)
+    return by_id

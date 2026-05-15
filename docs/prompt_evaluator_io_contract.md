@@ -195,4 +195,9 @@ The evaluator output is an auditable candidate annotation layer, not a truth lay
 
 ## Reference implementation (stub)
 
-[`run_prompt_eval.py`](../scripts/run_prompt_eval.py) with `--mode stub` writes one normalized record per input pilot row using a fixed in-process JSON payload (no network). It exercises `rde_eval.prompt_eval` normalization and provenance fields; replace the stub with a live model caller behind the same normalization boundary.
+[`run_prompt_eval.py`](../scripts/run_prompt_eval.py) supports:
+
+- **`--mode stub`** — one normalized record per input pilot row using a fixed in-process JSON payload (no network).
+- **`--mode replay --raw-jsonl PATH`** — merge captured `id` + `raw_output` lines and normalize (for API responses saved offline).
+
+Both modes exercise `rde_eval.prompt_eval` normalization and provenance fields. Prompt text for live calls is built by `rde_eval.prompt_template` (`rde-prompt-eval-v1`); replace the stub/replay source with a live model caller behind the same normalization boundary.

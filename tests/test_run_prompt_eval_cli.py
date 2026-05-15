@@ -45,3 +45,49 @@ def test_run_prompt_eval_stub_writes_jsonl(
     assert first["normalization_status"] == "ok"
     assert first["annotator_id"] == "stub"
     assert "raw_output" in first
+
+
+def test_run_prompt_eval_replay_mode(tmp_path: Path) -> None:
+    good = json.dumps(
+        {
+            "llm_annotation": "Suspicious Drift",
+            "risk_flags": ["uncertainty_loss"],
+            "criticality": "medium",
+            "explanation": "test",
+        }
+    )
+    raw_path = tmp_path / "captures.jsonl"
+    raw_path.write_text(
+        json.dumps({"id": "sample-001", "raw_output": good}) + "\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "replay_out.jsonl"
+    cmd = [
+        sys.executable,
+        str(REPO_ROOT / "scripts" / "run_prompt_eval.py"),
+        "--input",
+        str(REPO_ROOT / "data" / "samples.jsonl"),
+        "--output",
+        str(out),
+        "--mode",
+        "replay",
+        "--raw-jsonl",
+        str(raw_path),
+        "--annotation-run-id",
+        "pytest-replay",
+        "--annotator-id",
+        "replay-test",
+    ]
+    env = {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
+    proc = subprocess.run(
+        cmd, cwd=str(REPO_ROOT), capture_output=True, text=True, check=False, env=env
+    )
+    assert proc.returncode == 0, proc.stderr
+    rows = [json.loads(ln) for ln in out.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert len(rows) == 4
+    first = rows[0]
+    assert first["id"] == "sample-001"
+    assert first["normalization_status"] == "ok"
+    assert first["llm_annotation"] == "Suspicious Drift"
+    assert rows[1]["normalization_status"] == "failed"
+    assert rows[1]["error_type"] == "missing_raw_output"

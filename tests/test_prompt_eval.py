@@ -10,6 +10,7 @@ from rde_eval.prompt_eval import (
     build_failure_record,
     build_success_record,
     extract_prompt_input,
+    load_raw_outputs_by_id,
     normalize_model_output,
     parse_raw_model_output,
     stub_model_raw_output,
@@ -134,3 +135,32 @@ def test_build_success_record_omits_blank_explanations() -> None:
     )
     assert "explanation" not in rec
     assert "explanation_ja" not in rec
+
+
+def test_load_raw_outputs_by_id(tmp_path) -> None:
+    raw_path = tmp_path / "raw.jsonl"
+    good = json.dumps(
+        {
+            "llm_annotation": "Preserved",
+            "risk_flags": [],
+            "criticality": "low",
+        }
+    )
+    raw_path.write_text(
+        json.dumps({"id": "a", "raw_output": good}) + "\n",
+        encoding="utf-8",
+    )
+    assert load_raw_outputs_by_id(raw_path) == {"a": good}
+
+
+def test_load_raw_outputs_by_id_rejects_duplicate_id(tmp_path) -> None:
+    raw_path = tmp_path / "raw.jsonl"
+    raw_path.write_text(
+        json.dumps({"id": "dup", "raw_output": "{}"})
+        + "\n"
+        + json.dumps({"id": "dup", "raw_output": "{}"})
+        + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Duplicate id"):
+        load_raw_outputs_by_id(raw_path)
