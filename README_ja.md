@@ -89,6 +89,7 @@ python scripts/run_baselines.py --input data/samples.jsonl --output results/samp
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \
   --output results/prompt_eval_stub.jsonl \
