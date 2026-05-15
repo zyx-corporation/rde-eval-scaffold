@@ -89,6 +89,8 @@ python scripts/run_baselines.py \
   --nli
 ```
 
+英語以外のソース／出力のみのパイロットでは、`--nli-model` に**多言語向けチェックポイント**を指定してください。`m3.nli.scores` のクラス名はモデル依存なので、再現報告には **`model_id`** を必ず載せます。
+
 探索用ノートブック: [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb)（字句比率と `human_annotation` の対比）。
 
 `run_baselines.py` は `rde_eval` を import するため、`run_eval.py` 等と同様に editable install または `PYTHONPATH=.` が必要です。

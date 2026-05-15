@@ -118,6 +118,8 @@ python scripts/run_baselines.py \
   --nli-model facebook/roberta-large-mnli
 ```
 
+Use **`--nli-model`** with a multilingual checkpoint when the pilot rows are not English; `m3.nli.scores` keys follow that model’s `id2labels`.
+
 BERTScore + NLI can be combined (`--bertscore` and `--nli` together).
 
 **Notebook:** exploratory join of lexical ratio vs `human_annotation` — [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb).
