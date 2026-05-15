@@ -153,10 +153,12 @@ def test_live_resume_skips_ids_in_captures_without_duplicating(tmp_path: Path) -
     assert ok_count == 1
     assert skipped == 1
     assert calls == ["call"]
-    cap_lines = [json.loads(ln) for ln in cap.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    cap_text = cap.read_text(encoding="utf-8").splitlines()
+    cap_lines = [json.loads(ln) for ln in cap_text if ln.strip()]
     assert len(cap_lines) == 2
     assert sum(1 for row in cap_lines if row["id"] == "r1") == 1
     assert cap_lines[-1]["id"] == "r2"
-    out_lines = [json.loads(ln) for ln in out.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    out_text = out.read_text(encoding="utf-8").splitlines()
+    out_lines = [json.loads(ln) for ln in out_text if ln.strip()]
     assert len(out_lines) == 1
     assert out_lines[0]["id"] == "r2"
