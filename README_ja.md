@@ -32,9 +32,11 @@ RDEは、source context と generated output の間で生じる意味変化を�
 
 - **`--mode stub`** … API なし。固定 JSON を行ごとに正規化。
 - **`--mode replay --raw-jsonl PATH`** … 保存済み `id` + `raw_output` をマージして正規化。
-- **`--mode live`** … OpenAI 互換 API を行ごとに呼び出し（`OPENAI_API_KEY` 等）。失敗行は `api_error`。
+- **`--mode live`** … OpenAI 互換 API。各行を処理するたびに `--output` へ追記（中断しても途中まで残る）。
 
 プロンプト: `rde_eval.prompt_template`（`rde-prompt-eval-v1`）。HTTP: `rde_eval.llm_client`（標準ライブラリのみ）。
+
+DeepSeek 例（`--api-base-url https://api.deepseek.com/v1`、`--api-key-env DEEPSEEK_API_KEY`）は英語 README の Milestone 2 節を参照。
 
 live 実行時は `--raw-captures-out` で replay 用の `id` + `raw_output` を保存できます。`compare_annotations.py` は candidate の `normalization_status: failed` を一致率から除外し、`candidate_normalization_failed` に列挙します。
 
