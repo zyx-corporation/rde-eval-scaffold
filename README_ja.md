@@ -80,7 +80,14 @@ python scripts/run_baselines.py --input data/samples.jsonl --output results/samp
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-- **フェーズ3（計画・未実装）:** NLI を `baseline_scores.m3.nli` に載せる案と **`[baseline-nli]`**（`transformers`）— 詳細は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)。CLI は未配線です。
+**フェーズ3（任意）:** `python -m pip install -e '.[baseline-nli]'` と PyTorch を入れたうえで、`--nli`、`--nli-model`（既定: `facebook/roberta-large-mnli`）、`--nli-batch-size`。`--bertscore` と併用可。
+
+```bash
+python scripts/run_baselines.py \
+  --input data/samples.jsonl \
+  --output results/samples_with_m3.jsonl \
+  --nli
+```
 
 探索用ノートブック: [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb)（字句比率と `human_annotation` の対比）。
 

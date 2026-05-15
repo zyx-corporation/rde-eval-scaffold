@@ -11,11 +11,14 @@ from typing import Any
 
 from rde_eval.baselines import merge_milestone3_baseline
 
+DEFAULT_NLI_MODEL = "facebook/roberta-large-mnli"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Merge Milestone 3 baselines (lexical; optional BERTScore) into baseline_scores."
+            "Merge Milestone 3 baselines (lexical; optional BERTScore; optional NLI) "
+            "into baseline_scores."
         ),
     )
     parser.add_argument("--input", required=True, help="Input sample JSONL.")
@@ -30,16 +33,31 @@ def parse_args() -> argparse.Namespace:
         default="en",
         help="Language code passed to bert-score (default: en).",
     )
+    parser.add_argument(
+        "--nli",
+        action="store_true",
+        help="Also compute NLI (requires: pip install -e '.[baseline-nli]' + PyTorch).",
+    )
+    parser.add_argument(
+        "--nli-model",
+        default=DEFAULT_NLI_MODEL,
+        help=f"Hugging Face model id for sequence NLI (default: {DEFAULT_NLI_MODEL}).",
+    )
+    parser.add_argument(
+        "--nli-batch-size",
+        type=int,
+        default=8,
+        help="Inference batch size for NLI (default: 8).",
+    )
     return parser.parse_args()
 
 
-def _require_row_fields(data: dict[str, Any], *, line_number: int) -> tuple[str, str, str]:
+def _require_row_fields(data: dict[str, Any], *, line_number: int) -> None:
     missing = [k for k in ("id", "source", "output") if not data.get(k)]
     if missing:
         raise ValueError(
             f"line {line_number}: missing required fields for baselines: {', '.join(missing)}"
         )
-    return str(data["id"]), str(data["source"]), str(data["output"])
 
 
 def main() -> None:
@@ -88,6 +106,26 @@ def main() -> None:
                     source=str(row["source"]),
                     output=str(row["output"]),
                     bertscore=bs,
+                )
+                row["baseline_scores"] = merged
+
+        if args.nli:
+            from rde_eval.nli_m3 import compute_nli_batch
+
+            nli_scores = compute_nli_batch(
+                [str(r["source"]) for r in parsed_rows],
+                [str(r["output"]) for r in parsed_rows],
+                model_id=str(args.nli_model),
+                batch_size=int(args.nli_batch_size),
+            )
+            if len(nli_scores) != len(parsed_rows):
+                raise ValueError("internal error: NLI batch length mismatch")
+            for row, nd in zip(parsed_rows, nli_scores, strict=True):
+                merged = merge_milestone3_baseline(
+                    row["baseline_scores"],
+                    source=str(row["source"]),
+                    output=str(row["output"]),
+                    nli=nd,
                 )
                 row["baseline_scores"] = merged
 

@@ -99,9 +99,26 @@ Goal: compare RDE-style evaluation against existing methods.
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-**Phase 2 (optional):** BERTScore via `pip install -e '.[baseline]'`, then add `--bertscore` and optionally `--bertscore-lang`.
+**Phase 2 (optional):** BERTScore via `pip install -e '.[baseline]'`, then `--bertscore` / `--bertscore-lang`.
 
-**Phase 3 (planned):** NLI contract and `[baseline-nli]` extra — see [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md) (no CLI wiring yet).
+```bash
+python scripts/run_baselines.py \
+  --input data/samples.jsonl \
+  --output results/samples_with_m3.jsonl \
+  --bertscore
+```
+
+**Phase 3 (optional):** NLI via `pip install -e '.[baseline-nli]'` plus PyTorch for your platform; then `--nli`, `--nli-model`, and `--nli-batch-size`:
+
+```bash
+python scripts/run_baselines.py \
+  --input data/samples.jsonl \
+  --output results/samples_with_m3.jsonl \
+  --nli \
+  --nli-model facebook/roberta-large-mnli
+```
+
+BERTScore + NLI can be combined (`--bertscore` and `--nli` together).
 
 **Notebook:** exploratory join of lexical ratio vs `human_annotation` — [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb).
 
@@ -135,6 +152,7 @@ rde-eval-scaffold/
     __init__.py
     baselines.py
     bertscore_m3.py
+    nli_m3.py
     schema.py
     classifier.py
     evaluator.py

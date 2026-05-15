@@ -56,3 +56,40 @@ def test_merge_with_bertscore_bumps_version() -> None:
     )
     assert merged["m3"]["version"] == "2"
     assert merged["m3"]["bertscore"]["f1"] == 0.5
+
+
+def test_merge_nli_bumps_version_and_keeps_bertscore() -> None:
+    bert = {
+        "f1": 0.8,
+        "precision": 0.8,
+        "recall": 0.8,
+        "lang": "en",
+        "method": "bert-score",
+    }
+    with_bs = merge_milestone3_baseline({}, source="s", output="o", bertscore=bert)
+    nli_block = {
+        "method": "transformers-sequence-classification",
+        "model_id": "test-model",
+        "premise": "source",
+        "hypothesis": "output",
+        "label": "neutral",
+        "scores": {"entailment": 0.1, "neutral": 0.7, "contradiction": 0.2},
+    }
+    merged = merge_milestone3_baseline(with_bs, source="s", output="o", nli=nli_block)
+    assert merged["m3"]["version"] == "3"
+    assert merged["m3"]["bertscore"]["f1"] == 0.8
+    assert merged["m3"]["nli"]["label"] == "neutral"
+
+
+def test_merge_nli_only_version_three() -> None:
+    nli_block = {
+        "method": "transformers-sequence-classification",
+        "model_id": "m",
+        "premise": "source",
+        "hypothesis": "output",
+        "label": "entailment",
+        "scores": {"entailment": 0.9},
+    }
+    merged = merge_milestone3_baseline({}, source="a", output="b", nli=nli_block)
+    assert merged["m3"]["version"] == "3"
+    assert "bertscore" not in merged["m3"]

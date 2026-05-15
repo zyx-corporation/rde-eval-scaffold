@@ -104,25 +104,27 @@ Batch scoring is used internally (one model load for all lines). First run may d
 | **Factuality / claim checks** | Often API or task-specific; define I/O in a follow-on doc before coding. |
 | **LLM-as-judge** | Align with existing `run_prompt_eval` provenance patterns; separate from `bert-score` to avoid double-counting cost. |
 
-## Phase 3 — NLI (planned, not implemented)
+## Phase 3 — NLI (optional, implemented)
 
 ### Role
 
 A standard **premise–hypothesis** NLI model scores whether `output` (**hypothesis**) is entailed by `source` (**premise**). This is a blunt signal: it does **not** encode caveat preservation, institutional responsibility, or RDE risk flags.
 
+Implementation: [`rde_eval.nli_m3`](../rde_eval/nli_m3.py) uses `transformers` **sequence classification** (one forward pass per batch); heavy imports stay inside the helper and the CLI.
+
 ### Optional dependencies
 
-Install **`[baseline-nli]`** from `pyproject.toml` (see repository). Typical install:
+Install **`[baseline-nli]`** from `pyproject.toml` (see repository) **and** a PyTorch build for your platform. Typical install:
 
 ```bash
 python -m pip install -e '.[dev,baseline,baseline-nli]'
 ```
 
-Omit **`[baseline]`** if BERTScore is not needed. Use a **pinned** `transformers` / PyTorch / CUDA stack for published results.
+Omit **`[baseline]`** if BERTScore is not needed. Pin `transformers` / `torch` / CUDA for published results.
 
-### Recording shape (planned)
+### Recording shape
 
-When implemented, writers add **`m3.nli`** next to `lexical` / `bertscore`:
+[`rde_eval.nli_m3.compute_nli_batch`](../rde_eval/nli_m3.py) writes **`m3.nli`** next to `lexical` / `bertscore`:
 
 ```json
 {
@@ -140,8 +142,8 @@ When implemented, writers add **`m3.nli`** next to `lexical` / `bertscore`:
       "method": "bert-score"
     },
     "nli": {
-      "method": "transformers-pipeline",
-      "model_id": "roberta-large-mnli",
+      "method": "transformers-sequence-classification",
+      "model_id": "facebook/roberta-large-mnli",
       "premise": "source",
       "hypothesis": "output",
       "label": "neutral",
@@ -155,27 +157,38 @@ When implemented, writers add **`m3.nli`** next to `lexical` / `bertscore`:
 }
 ```
 
-- **`label`**: argmax class name (lowercase, pipeline-dependent label set).
-- **`scores`**: probabilities keyed by class name; keys must stay stable for a given **`model_id`**.
+- **`label`**: argmax class name (lowercase; keys follow the model’s `id2label` strings).
+- **`scores`**: softmax probabilities keyed by normalized class name; keys must stay stable for a given **`model_id`**.
 - **`model_id`**: Hugging Face hub id or local path string used for reproducibility.
 
 **Version rule:** set **`m3.version` to `"3"`** whenever **`m3.nli`** is written, even if BERTScore is omitted (lexical + NLI only).
 
-### Inference outline (implementation checklist)
+### Operational notes
 
-1. **Batching:** load the pipeline or model **once**, score rows in batches (same pattern as BERTScore).
-2. **Truncation:** enforce `max_length` consistently; record whether truncation occurred for any pilot sample.
-3. **Multilingual pilots:** restrict phase 3 to English rows **or** pick a multilingual NLI checkpoint and document **`model_id`**.
-4. **CLI:** extend `run_baselines.py` with `--nli` / `--nli-model` once implemented; lazy-import heavy modules (mirroring `bertscore_m3.py`).
+1. **Batching:** the model and tokenizer load **once**; use `--nli-batch-size` to tune memory.
+2. **Truncation:** inputs use `max_length=512` with truncation; log or extend the schema if you need per-row truncation flags.
+3. **Multilingual pilots:** pick a multilingual NLI checkpoint and pass it via **`--nli-model`**, or filter rows by language.
+4. **First run:** Hugging Face may download weights for **`--nli-model`** (default `facebook/roberta-large-mnli`).
 
-### Why no code yet
+### CLI
 
-NLI is checkpoint- and latency-sensitive; defining the **`m3.nli`** contract first avoids schema churn once a default model is chosen.
+With `[baseline-nli]` and PyTorch installed:
 
-## CLI (phase 1–2)
+```bash
+python scripts/run_baselines.py \
+  --input data/samples.jsonl \
+  --output results/samples_with_m3.jsonl \
+  --nli \
+  --nli-model facebook/roberta-large-mnli \
+  --nli-batch-size 8
+```
 
-[`scripts/run_baselines.py`](../scripts/run_baselines.py) reads an input JSONL of samples, computes phase-1 metrics, **merges** into `baseline_scores`, and writes JSONL. With **`--bertscore`**, it also merges phase 2 after `[baseline]` is installed. Phase 3 NLI flags are **not** wired yet. Extra per-line keys (for example `source_ja`) are preserved.
+Combine with **`--bertscore`** when `[baseline]` is also installed.
+
+## CLI (summary)
+
+[`scripts/run_baselines.py`](../scripts/run_baselines.py) reads JSONL samples, merges **lexical** baselines, optionally **`--bertscore`** (requires `[baseline]`), and optionally **`--nli`** (requires `[baseline-nli]` + PyTorch). Extra per-line keys (for example `source_ja`) are preserved.
 
 ## Related work (historical)
 
-Phase 1 originally excluded neural baselines; phase 2 adds BERTScore behind `[baseline]`. Phase 3 reserves **`[baseline-nli]`** and `m3.nli` pending implementation.
+Phase 1 excluded neural baselines; phase 2 adds BERTScore behind `[baseline]`; phase 3 adds NLI behind `[baseline-nli]` with `m3.nli` on disk.
