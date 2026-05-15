@@ -49,6 +49,12 @@ def parse_args() -> argparse.Namespace:
         default=8,
         help="Inference batch size for NLI (default: 8).",
     )
+    parser.add_argument(
+        "--nli-max-length",
+        type=int,
+        default=512,
+        help="Tokenizer max_length for NLI pairs (default: 512).",
+    )
     return parser.parse_args()
 
 
@@ -110,6 +116,9 @@ def main() -> None:
                 row["baseline_scores"] = merged
 
         if args.nli:
+            if int(args.nli_max_length) < 8:
+                raise ValueError("--nli-max-length must be at least 8")
+
             from rde_eval.nli_m3 import compute_nli_batch
 
             nli_scores = compute_nli_batch(
@@ -117,6 +126,7 @@ def main() -> None:
                 [str(r["output"]) for r in parsed_rows],
                 model_id=str(args.nli_model),
                 batch_size=int(args.nli_batch_size),
+                max_length=int(args.nli_max_length),
             )
             if len(nli_scores) != len(parsed_rows):
                 raise ValueError("internal error: NLI batch length mismatch")

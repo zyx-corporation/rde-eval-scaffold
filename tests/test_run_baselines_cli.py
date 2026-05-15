@@ -101,6 +101,37 @@ def test_run_baselines_bertscore_with_mocked_batch(
     assert row["baseline_scores"]["m3"]["bertscore"]["f1"] == 0.895
 
 
+def test_run_baselines_nli_rejects_short_max_length(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    inp = tmp_path / "in.jsonl"
+    inp.write_text(
+        '{"id":"a","task":"t","risk_context":"r","source":"p","output":"h"}\n',
+        encoding="utf-8",
+    )
+    out = tmp_path / "out.jsonl"
+    import runpy
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_baselines.py",
+            "--input",
+            str(inp),
+            "--output",
+            str(out),
+            "--nli",
+            "--nli-model",
+            "fake/model",
+            "--nli-max-length",
+            "4",
+        ],
+    )
+    with pytest.raises(SystemExit):
+        runpy.run_path(str(REPO_ROOT / "scripts" / "run_baselines.py"), run_name="__main__")
+
+
 def test_run_baselines_nli_with_mocked_batch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -115,7 +146,7 @@ def test_run_baselines_nli_with_mocked_batch(
         assert len(sources) == len(outputs)
         assert model_id == "fake/model"
         assert batch_size == 4
-        assert max_length == 512
+        assert max_length == 256
         return [
             {
                 "method": "transformers-sequence-classification",
@@ -153,6 +184,8 @@ def test_run_baselines_nli_with_mocked_batch(
             "fake/model",
             "--nli-batch-size",
             "4",
+            "--nli-max-length",
+            "256",
         ],
     )
     runpy.run_path(str(REPO_ROOT / "scripts" / "run_baselines.py"), run_name="__main__")

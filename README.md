@@ -108,14 +108,16 @@ python scripts/run_baselines.py \
   --bertscore
 ```
 
-**Phase 3 (optional):** NLI via `pip install -e '.[baseline-nli]'` plus PyTorch for your platform; then `--nli`, `--nli-model`, and `--nli-batch-size`:
+**Phase 3 (optional):** NLI via `pip install -e '.[baseline-nli]'` plus PyTorch for your platform; then `--nli`, `--nli-model`, **`--nli-max-length`**, and `--nli-batch-size`:
 
 ```bash
 python scripts/run_baselines.py \
   --input data/samples.jsonl \
   --output results/samples_with_m3.jsonl \
   --nli \
-  --nli-model facebook/roberta-large-mnli
+  --nli-model facebook/roberta-large-mnli \
+  --nli-batch-size 8 \
+  --nli-max-length 512
 ```
 
 Use **`--nli-model`** with a multilingual checkpoint when the pilot rows are not English; `m3.nli.scores` keys follow that model’s `id2labels`.

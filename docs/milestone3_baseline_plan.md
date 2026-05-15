@@ -166,7 +166,7 @@ Omit **`[baseline]`** if BERTScore is not needed. Pin `transformers` / `torch` /
 ### Operational notes
 
 1. **Batching:** the model and tokenizer load **once**; use `--nli-batch-size` to tune memory.
-2. **Truncation:** inputs use `max_length=512` with truncation; log or extend the schema if you need per-row truncation flags.
+2. **Truncation:** tokenizer uses **`--nli-max-length`** (default 512) with truncation; shorten for speed, lengthen only if vocabulary and VRAM allow.
 3. **Multilingual pilots:** pick a multilingual NLI checkpoint and pass it via **`--nli-model`**, or filter rows by language.
 4. **First run:** Hugging Face may download weights for **`--nli-model`** (default `facebook/roberta-large-mnli`).
 
@@ -180,7 +180,8 @@ python scripts/run_baselines.py \
   --output results/samples_with_m3.jsonl \
   --nli \
   --nli-model facebook/roberta-large-mnli \
-  --nli-batch-size 8
+  --nli-batch-size 8 \
+  --nli-max-length 512
 ```
 
 Combine with **`--bertscore`** when `[baseline]` is also installed.

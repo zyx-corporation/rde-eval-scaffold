@@ -80,7 +80,7 @@ python scripts/run_baselines.py --input data/samples.jsonl --output results/samp
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-**フェーズ3（任意）:** `python -m pip install -e '.[baseline-nli]'` と PyTorch を入れたうえで、`--nli`、`--nli-model`（既定: `facebook/roberta-large-mnli`）、`--nli-batch-size`。`--bertscore` と併用可。
+**フェーズ3（任意）:** `python -m pip install -e '.[baseline-nli]'` と PyTorch を入れたうえで、`--nli`、`--nli-model`（既定: `facebook/roberta-large-mnli`）、`--nli-batch-size`、`--nli-max-length`（既定: 512）。`--bertscore` と併用可。
 
 ```bash
 python scripts/run_baselines.py \
