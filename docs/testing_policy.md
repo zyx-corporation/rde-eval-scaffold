@@ -139,6 +139,10 @@ ruff format --check .
 pytest
 python scripts/annotate_pilot.py --help
 python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
+python scripts/run_prompt_eval.py \
+  --input data/samples.jsonl \
+  --output /tmp/prompt_eval_stub.jsonl \
+  --annotation-run-id manual-gate
 python scripts/export_results.py --input /tmp/rde_results.jsonl --format csv --output /tmp/rde_results.csv
 ```
 

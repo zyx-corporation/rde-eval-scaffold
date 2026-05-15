@@ -128,14 +128,21 @@ def compare_annotations(
 
 def write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compare RDE annotation JSONL files.")
     parser.add_argument("--reference", required=True)
     parser.add_argument("--candidate", required=True)
-    parser.add_argument("--source", required=False, help="Reserved for future source-aware comparison.")
+    parser.add_argument(
+        "--source",
+        required=False,
+        help="Reserved for future source-aware comparison.",
+    )
     parser.add_argument("--output", required=True)
     return parser.parse_args()
 

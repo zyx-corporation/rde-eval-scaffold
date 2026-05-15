@@ -23,6 +23,9 @@ class Criticality(StrEnum):
     HIGH = "high"
 
 
+CRITICALITY_VALUES = frozenset(member.value for member in Criticality)
+
+
 KNOWN_RISK_FLAGS = {
     "claim_strength_inflation",
     "uncertainty_loss",

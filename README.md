@@ -38,6 +38,15 @@ Goal: establish a reproducible scaffold for RDE pilot studies. Scope and complet
 
 Goal: add a prompt-based evaluator using the same schema and annotation guide.
 
+I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). A **stub** entrypoint (no model API) writes normalized JSONL for pipeline wiring:
+
+```bash
+python scripts/run_prompt_eval.py \
+  --input data/pilot_30.jsonl \
+  --output results/prompt_eval_stub.jsonl \
+  --annotation-run-id "$(date +%Y%m%d)-stub-local"
+```
+
 ### Milestone 3: Baseline Comparison
 
 Goal: compare RDE-style evaluation against existing methods.
@@ -68,8 +77,10 @@ rde-eval-scaffold/
     schema.py
     classifier.py
     evaluator.py
+    prompt_eval.py
   scripts/
     run_eval.py
+    run_prompt_eval.py
     export_results.py
   tests/
     test_schema.py
@@ -88,15 +99,17 @@ The current `data/samples.jsonl` file contains minimal dry-run examples for sche
 
 ## Invoking repository scripts
 
-Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py` and `annotate_pilot.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
+Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py`, `annotate_pilot.py`, and `run_prompt_eval.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
 
 Use either of the following from the **repository root**:
 
 1. **Editable install (recommended for development)**
 
    ```bash
-   python -m pip install -e .[dev]
+   python -m pip install -e '.[dev]'
    ```
+
+   (Zsh treats `.[dev]` as a glob unless quoted.)
 
 2. **Set `PYTHONPATH` for ad-hoc runs** — prefix each script invocation:
 
@@ -108,11 +121,15 @@ Use either of the following from the **repository root**:
 
 ## Minimal Usage
 
-After `python -m pip install -e .` (or by prefixing each `python` line with `PYTHONPATH=.`):
+After `python -m pip install -e '.[dev]'` (or by prefixing each `python` line with `PYTHONPATH=.`):
 
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+python scripts/run_prompt_eval.py \
+  --input data/samples.jsonl \
+  --output results/prompt_eval_stub.jsonl \
+  --annotation-run-id local-stub-1
 ```
 
 The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I/O failures; **0** on success.
@@ -120,6 +137,6 @@ The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I
 ## Development
 
 ```bash
-python -m pip install -e .[dev]
+python -m pip install -e '.[dev]'
 pytest
 ```
