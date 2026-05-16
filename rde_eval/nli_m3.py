@@ -9,6 +9,24 @@ def _normalize_nli_label(name: str | int) -> str:
     return str(name).strip().lower().replace(" ", "_")
 
 
+def nli_pair_exceeds_tokenizer_budget(
+    tokenizer: Any,
+    source: str,
+    output: str,
+    *,
+    max_length: int,
+) -> bool:
+    """True when ``source``+``output`` exceeds ``max_length`` tokens **before** truncation."""
+
+    encoded = tokenizer(
+        source,
+        output,
+        truncation=False,
+        add_special_tokens=True,
+    )
+    return len(encoded["input_ids"]) > max_length
+
+
 def compute_nli_batch(
     sources: list[str],
     outputs: list[str],
@@ -53,14 +71,14 @@ def compute_nli_batch(
 
             truncated_flags: list[bool] = []
             for s_pair, o_pair in zip(batch_sources, batch_outputs, strict=True):
-                enc_no_trunc = tokenizer(
-                    s_pair,
-                    o_pair,
-                    truncation=False,
-                    add_special_tokens=True,
+                truncated_flags.append(
+                    nli_pair_exceeds_tokenizer_budget(
+                        tokenizer,
+                        s_pair,
+                        o_pair,
+                        max_length=max_length,
+                    )
                 )
-                n_ids = len(enc_no_trunc["input_ids"])
-                truncated_flags.append(n_ids > max_length)
 
             encoded = tokenizer(
                 batch_sources,
