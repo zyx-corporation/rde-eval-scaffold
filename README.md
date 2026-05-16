@@ -24,21 +24,25 @@ This repository targets Python 3.12 or later.
 
 ## Current Implementation Status
 
-The current implementation is Milestone 1: a deterministic heuristic scaffold for dry-run validation of the RDE schema, label taxonomy, risk flags, JSONL pipeline, CLI output, and basic tests.
+**Milestone 1 is complete.** The deterministic heuristic scaffold (schema, label taxonomy, risk flags, JSONL pipeline, `run_eval.py`, tests, and documentation) satisfies [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md).
 
-Milestone 1 should not be interpreted as a full RDE evaluator or as empirical validation of RDE. It is a reproducibility layer that keeps the experimental format stable before prompt-based and model-based evaluators are introduced.
+**Milestone 2 is complete.** Prompt-based normalization, provenance, and `scripts/run_prompt_eval.py` (stub / replay / live) satisfy [`docs/milestone2_implementation_plan.md`](docs/milestone2_implementation_plan.md) and [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md).
+
+**Milestone 3 is complete.** Baseline comparison (lexical; optional BERTScore and NLI), pilot merge/notebook paths, and documentation satisfy [`docs/milestone3_implementation_plan.md`](docs/milestone3_implementation_plan.md) (technical spec: [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)).
+
+Milestones 1–3 are not a full RDE evaluator or empirical validation at scale. **Milestone 4** continues with annotation reliability on the same record shape.
 
 ## Roadmap
 
-### Milestone 1: Heuristic RDE Scaffold
+### Milestone 1: Heuristic RDE Scaffold (complete)
 
 Goal: establish a reproducible scaffold for RDE pilot studies. Scope and completion criteria: [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md).
 
-### Milestone 2: Prompt-based RDE Evaluator
+### Milestone 2: Prompt-based RDE Evaluator (complete)
 
-Goal: add a prompt-based evaluator using the same schema and annotation guide.
+Goal: add a prompt-based evaluator using the same schema and annotation guide. Scope and completion criteria: [`docs/milestone2_implementation_plan.md`](docs/milestone2_implementation_plan.md). Normative I/O: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md).
 
-I/O contract: [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md). Entrypoints:
+Entrypoints:
 
 ```bash
 # Stub — fixed JSON per row
@@ -89,11 +93,11 @@ Prompt assembly: `rde_eval.prompt_template` (`rde-prompt-eval-v1`). HTTP client:
 
 `compare_annotations.py` excludes candidate rows with `normalization_status: failed` from agreement metrics and lists them under `candidate_normalization_failed`. Add `--summary` to print agreement rates and disagreement counts to stdout.
 
-### Milestone 3: Baseline Comparison
+### Milestone 3: Baseline Comparison (complete)
 
-Goal: compare RDE-style evaluation against existing methods.
+Goal: compare RDE-style evaluation against existing methods. Scope and completion criteria: [`docs/milestone3_implementation_plan.md`](docs/milestone3_implementation_plan.md). On-disk metrics and phases: [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md).
 
-**Phase 1 (in repo):** deterministic lexical overlap via `difflib` — no extra dependencies. See [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md). CLI:
+**Phase 1 (in repo):** deterministic lexical overlap via `difflib` — no extra dependencies. CLI:
 
 ```bash
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
@@ -145,8 +149,12 @@ rde-eval-scaffold/
     annotation_guide.md
     experiment_plan.md
     milestone1_implementation_plan.md
+    milestone2_implementation_plan.md
+    milestone3_implementation_plan.md
     milestone3_baseline_plan.md
+    prompt_evaluator_io_contract.md
     paper_preparation.md
+    paper_preparation_ja.md
     repository_operation.md
   data/
     samples.jsonl
@@ -239,7 +247,7 @@ The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I
 
 ## Publication / paper authoring
 
-Pilot design ↔ claims boundary, reproducible command blocks, BibTeX starters: [`docs/paper_preparation.md`](docs/paper_preparation.md).
+Pilot design ↔ claims boundary, reproducible command blocks, BibTeX starters: [`docs/paper_preparation.md`](docs/paper_preparation.md) (full Japanese companion: [`docs/paper_preparation_ja.md`](docs/paper_preparation_ja.md)).
 
 ## Development
 

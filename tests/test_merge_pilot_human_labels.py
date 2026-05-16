@@ -60,7 +60,8 @@ def test_merge_reports_missing_annotation(tmp_path: Path) -> None:
     pilot_path = tmp_path / "p.jsonl"
     anno_path = tmp_path / "a.jsonl"
     pilot_path.write_text(
-        json.dumps({"id": "one", "source": "a", "output": "b"}) + "\n"
+        json.dumps({"id": "one", "source": "a", "output": "b"})
+        + "\n"
         + json.dumps({"id": "two", "source": "c", "output": "d"})
         + "\n",
         encoding="utf-8",

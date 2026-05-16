@@ -32,9 +32,13 @@ def test_annotation_rows_match_pilot_tasks_ten_each() -> None:
             pilot_task[r["id"]] = r["task"]
 
     counts: dict[str, int] = {}
-    for line in (REPO_ROOT / "data" / "annotations" / "annotations.jsonl").read_text(
-        encoding="utf-8",
-    ).splitlines():
+    for line in (
+        (REPO_ROOT / "data" / "annotations" / "annotations.jsonl")
+        .read_text(
+            encoding="utf-8",
+        )
+        .splitlines()
+    ):
         if line.strip():
             row = json.loads(line)
             t = pilot_task[row["id"]]

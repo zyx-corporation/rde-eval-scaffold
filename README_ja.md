@@ -45,13 +45,13 @@ scripts/
 
 `pilot_30.jsonl` に含まれる先行ラベルより **注釈 JSONL が優先**されるよう統合するときは、[`scripts/merge_pilot_human_labels.py`](scripts/merge_pilot_human_labels.py) を使います（例は `data/README.md`）。
 
-## Milestone 1（現在）
+## Milestone 1（完了）
 
-実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。
+**完了済み。** スキーマ、ラベル体系、リスクフラグ、JSONL パイプライン、`run_eval.py`、テスト、ドキュメントまで、[`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) の成果物・完了条件を満たしています。
 
-## Milestone 2（着手済み・スタブ）
+## Milestone 2（完了）
 
-入出力の契約は [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md)。
+正規化・出典メタデータ・`scripts/run_prompt_eval.py`（stub / replay / live）が [`docs/milestone2_implementation_plan.md`](docs/milestone2_implementation_plan.md) および [`docs/prompt_evaluator_io_contract.md`](docs/prompt_evaluator_io_contract.md) を満たしています。
 
 - **`--mode stub`** … API なし。固定 JSON を行ごとに正規化。
 - **`--mode replay --raw-jsonl PATH`** … 保存済み `id` + `raw_output` をマージして正規化。
@@ -70,9 +70,11 @@ python scripts/run_prompt_eval.py \
   --annotation-run-id "$(date +%Y%m%d)-stub-local"
 ```
 
-## Milestone 3（ベースライン）
+## Milestone 3（完了）
 
-方針は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)。
+字句・任意の BERTScore / NLI・`run_baselines.py`・パイロット統合とノートブック手順・ドキュメント整合が [`docs/milestone3_implementation_plan.md`](docs/milestone3_implementation_plan.md) の完了条件を満たしています。`m3` のフィールド仕様は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)。
+
+方針の要約:
 
 - **フェーズ1:** `difflib` による字句類似度（追加依存なし）。`baseline_scores.m3` にマージする。
 - **フェーズ2（任意）:** BERTScore。`python -m pip install -e '.[baseline]'` のうえ `--bertscore`（必要なら `--bertscore-lang`）。詳細は同ドキュメント。
@@ -133,7 +135,7 @@ python scripts/run_prompt_eval.py \
 
 ## 論文・発表準備
 
-パイロット設計、主張の境界、再現コマンド、参考文献のひな型: [`docs/paper_preparation.md`](docs/paper_preparation.md)。
+パイロット設計、主張の境界、再現コマンド、参考文献のひな型: [`docs/paper_preparation_ja.md`](docs/paper_preparation_ja.md)（英語版・BibTeX 中心: [`docs/paper_preparation.md`](docs/paper_preparation.md)）。
 
 ## 開発
 

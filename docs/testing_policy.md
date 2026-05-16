@@ -129,9 +129,9 @@ pytest
 
 CI targets Python 3.12 only.
 
-## Manual verification checklist (pre–Milestone 2 gate)
+## Manual verification checklist (pre–Milestone 2 gate — historical)
 
-GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) tracks a human gate before Milestone 2 work. From the repository root:
+Milestone 2 is complete; this checklist remains useful for local smoke verification. GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) originally tracked a human gate before Milestone 2 work. From the repository root:
 
 1. **Either** install the project in editable mode once per environment:
 

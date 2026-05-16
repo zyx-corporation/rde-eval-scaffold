@@ -1,5 +1,9 @@
 # Prompt Evaluator I/O Contract
 
+## Status
+
+Repository behavior is **aligned with this contract**; Milestone 2 closure is recorded in [`milestone2_implementation_plan.md`](milestone2_implementation_plan.md).
+
 ## Purpose
 
 This document defines the narrow I/O contract for the Milestone 2 prompt-based RDE evaluator.
