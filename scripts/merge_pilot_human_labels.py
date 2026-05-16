@@ -105,7 +105,8 @@ def main() -> None:
         extra = set(annotation_by_id) - pilot_ids
         if extra:
             raise ValueError(
-                "annotation ids not present in pilot file: " + ", ".join(sorted(extra)[:10])
+                "annotation ids not present in pilot file: "
+                + ", ".join(sorted(extra)[:10])
                 + (" ..." if len(extra) > 10 else "")
             )
     except (OSError, ValueError) as exc:

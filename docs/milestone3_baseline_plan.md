@@ -1,5 +1,9 @@
 # Milestone 3 — Baseline Comparison (Plan)
 
+## Program status
+
+Milestone 3 is **complete** — scope, closure checklist, and status date: [`milestone3_implementation_plan.md`](milestone3_implementation_plan.md).
+
 ## Purpose
 
 Milestone 3 compares RDE-style judgments with lighter-weight signals recorded on each sample under `baseline_scores` (see [`experiment_plan.md`](experiment_plan.md) and [`milestone1_implementation_plan.md`](milestone1_implementation_plan.md)).

@@ -1,5 +1,7 @@
 # Paper preparation kit (RDE pilot scaffold)
 
+> **読者ノート（日本語）:** フル日本語の同型ドキュメントは **[`paper_preparation_ja.md`](paper_preparation_ja.md)** にあります。以下は英語ドラフト・BibTeX を中心とした版です。
+
 > **読者ノート（日本語）:** この文書は、本リポジトリで実際にコード化されている実験（パイロット `N=30`、Milestone 3 ベースライン、人手注釈パイプライン）と**論文で許容できる主張の境界**を揃えるための下書き集です。**本文ドラフトは英語セクションが中心**です（国際論文・英語紀要を想定）。リポジトリの一次情報は各リンクを参照してください。
 
 ## 1. Scope: what this repository can and cannot support

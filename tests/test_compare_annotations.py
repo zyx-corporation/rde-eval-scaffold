@@ -19,7 +19,6 @@ def test_candidate_is_normalized_failed_row() -> None:
     )
 
 
-
 def test_compare_label_uses_human_on_reference_llm_on_candidate_only() -> None:
     ref = [
         {

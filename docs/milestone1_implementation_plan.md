@@ -1,5 +1,9 @@
 # Milestone 1 Implementation Plan
 
+## Status
+
+**Completed (2026-05-16).** Deliverables and completion criteria in this document are satisfied. Subsequent milestones extend the same schema; see the repository README roadmap.
+
 ## Purpose
 
 Milestone 1 defines the deterministic heuristic scaffold layer of the RDE evaluation repository.
@@ -182,4 +186,4 @@ This separation prevents the deterministic heuristic scaffold from being misrepr
 
 ## Next Step
 
-Milestone 2 introduces prompt-based evaluators using the same schema and annotation guide.
+Milestone 2 is **complete** — [`milestone2_implementation_plan.md`](milestone2_implementation_plan.md). Milestone 3 (baselines) is **complete** — [`milestone3_implementation_plan.md`](milestone3_implementation_plan.md). **Milestone 4** continues with annotation reliability (see repository README).

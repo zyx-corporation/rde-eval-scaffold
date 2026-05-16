@@ -108,9 +108,9 @@ pytest
 
 CI は Python 3.12 のみを対象とします。
 
-## 手動検証チェックリスト（Milestone 2 着手前ゲート）
+## 手動検証チェックリスト（Milestone 2 着手前ゲート・参照用）
 
-GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) で、Milestone 2 に入る前の人手確認を扱います。リポジトリルートで、次の**いずれか**を済ませてください。
+Milestone 2 は完了済みですが、ローカルスモーク用の手順として残します。もともと GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) で Milestone 2 着手前の人手確認を扱っていました。リポジトリルートで、次の**いずれか**を済ませてください。
 
 1. **editable install**（環境ごとに一度でも可）：`python -m pip install -e '.[dev]'`
 2. **または** 下記のように **`PYTHONPATH=.`** を、**`rde_eval`** を import するスクリプト（例：`annotate_pilot.py`、`run_eval.py`、`run_prompt_eval.py`）の **`python`** 呼び出し前方に付ける。
