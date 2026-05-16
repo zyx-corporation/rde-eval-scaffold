@@ -30,17 +30,20 @@ RDEは、source context と generated output の間で生じる意味変化を�
 scripts/
   annotate_pilot.py
   compare_annotations.py
+  merge_pilot_human_labels.py
   export_results.py
   run_baselines.py
   run_eval.py
   run_prompt_eval.py
 ```
 
-`compare_annotations.py` と `export_results.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。`run_baselines.py` は `rde_eval.baselines` を使うため、editable install または `PYTHONPATH=.` が必要です。
+`compare_annotations.py` と `export_results.py`、`merge_pilot_human_labels.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。`run_baselines.py` は `rde_eval.baselines` を使うため、editable install または `PYTHONPATH=.` が必要です。
 
 ## データ（パイロット）
 
 人手によるパイロット注釈は [`data/annotations/annotations.jsonl`](data/annotations/annotations.jsonl) に 30 行（全 `id` が [`data/pilot_30.jsonl`](data/pilot_30.jsonl) と対応）。タスクはそれぞれ 10 件ずつ — 要約・リライト・仕様変換 —（[`docs/experiment_plan.md`](docs/experiment_plan.md)）。
+
+`pilot_30.jsonl` に含まれる先行ラベルより **注釈 JSONL が優先**されるよう統合するときは、[`scripts/merge_pilot_human_labels.py`](scripts/merge_pilot_human_labels.py) を使います（例は `data/README.md`）。
 
 ## Milestone 1（現在）
 
@@ -120,6 +123,7 @@ python scripts/run_baselines.py \
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+python scripts/merge_pilot_human_labels.py --pilot data/pilot_30.jsonl --annotations data/annotations/annotations.jsonl --output results/pilot_30_with_human.jsonl
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \

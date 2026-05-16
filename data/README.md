@@ -31,3 +31,14 @@ The initial `samples.jsonl` file is intentionally small and illustrative. It is 
 Primary labels for the **`pilot_30.jsonl`** pilot study live in **`annotations/annotations.jsonl`**. Line count and `id`s match the pilot corpus (30 rows covering all pilot IDs).
 
 For task mix and field semantics, follow [`experiment_plan.md`](../docs/experiment_plan.md).
+
+The checked-in **`pilot_30.jsonl`** carries seed labels for convenience; authoritative finished labels are **`annotations.jsonl`**. Overlay them onto the pilot corpus (same ordering as **`pilot_30.jsonl`**) without importing `rde_eval`:
+
+```bash
+python scripts/merge_pilot_human_labels.py \
+  --pilot data/pilot_30.jsonl \
+  --annotations data/annotations/annotations.jsonl \
+  --output results/pilot_30_with_human.jsonl
+```
+
+Use the merged JSONL as input when you want baselines analyzed against the **`human_annotation`** values from **`annotate_pilot.py`** (`run_baselines.py`, notebooks via **`M3_JSONL`**, etc.).

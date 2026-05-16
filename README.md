@@ -170,6 +170,7 @@ rde-eval-scaffold/
   scripts/
     annotate_pilot.py
     compare_annotations.py
+    merge_pilot_human_labels.py
     export_results.py
     run_baselines.py
     run_eval.py
@@ -191,6 +192,8 @@ The current `data/samples.jsonl` file contains minimal dry-run examples for sche
 
 The **`data/pilot_30.jsonl`** file is the pilot corpus (30 paired samples). Primary human annotations for those IDs are recorded one-per-line in **`data/annotations/annotations.jsonl`**, aligned with [`docs/experiment_plan.md`](docs/experiment_plan.md) (10 summarization / 10 rewriting / 10 specification conversion).
 
+[`scripts/merge_pilot_human_labels.py`](scripts/merge_pilot_human_labels.py) writes a combined JSONL (pilot bodies + authoritative annotation overlay) suitable for **`run_baselines.py`** / analysis — see **`data/README.md`**.
+
 ## Invoking repository scripts
 
 Several scripts under `scripts/` import the `rde_eval` package (for example `run_eval.py`, `annotate_pilot.py`, `run_baselines.py`, and `run_prompt_eval.py`). From a plain checkout, running `python scripts/…` without installing the package fails with `ModuleNotFoundError: No module named 'rde_eval'` because the project directory is not on `sys.path`.
@@ -211,7 +214,7 @@ Use either of the following from the **repository root**:
    PYTHONPATH=. python scripts/run_eval.py --help
    ```
 
-`scripts/compare_annotations.py` and `scripts/export_results.py` do not import `rde_eval`, so they may run without these steps, but using the same environment keeps behavior consistent.
+`scripts/compare_annotations.py`, `scripts/export_results.py`, and `scripts/merge_pilot_human_labels.py` do not import `rde_eval`, so they may run without these steps, but using the same environment keeps behavior consistent.
 
 ## Minimal Usage
 
@@ -220,6 +223,7 @@ After `python -m pip install -e '.[dev]'` (or by prefixing each `python` line wi
 ```bash
 python scripts/run_eval.py --input data/samples.jsonl --output results/rde_results.jsonl
 python scripts/export_results.py --input results/rde_results.jsonl --format csv --output results/rde_results.csv
+python scripts/merge_pilot_human_labels.py --pilot data/pilot_30.jsonl --annotations data/annotations/annotations.jsonl --output results/pilot_30_with_human.jsonl
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \
