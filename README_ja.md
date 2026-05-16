@@ -103,7 +103,7 @@ python scripts/run_baselines.py \
 
 オフライン確認用の **`data/fixtures/m3_nli_notebook_smoke.jsonl`**（3 行、`m3.nli.truncated` の真偽を含む）に **`M3_JSONL`** を向けても動作します。
 
-探索用ノートブック: [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb)（ベースラインと `human_annotation` の対比）。環境変数 **`M3_JSONL`** で JSONL を指定可能。NLI は **`m3.nli.truncated`** で `--nli-max-length` 超過を記録。
+探索用ノートブック: [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb)（ベースラインと `human_annotation` の対比）。環境変数 **`M3_JSONL`** で JSONL を指定可能。30 件パイロットでは **`merge_pilot_human_labels.py`** と `run_baselines.py`（出力例: **`results/pilot_30_with_m3.jsonl`**）を経ると、このファイルが既定で優先されます。NLI は **`m3.nli.truncated`** で `--nli-max-length` 超過を記録。
 
 `run_baselines.py` は `rde_eval` を import するため、`run_eval.py` 等と同様に editable install または `PYTHONPATH=.` が必要です。
 
