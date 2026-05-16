@@ -25,3 +25,9 @@ Each line is a JSON object. The current schema is backward-compatible with the i
 - `baseline_scores`: Milestone 1 **placeholder only** — optional JSON-compatible object for format stability; the deterministic heuristic scaffold does not populate or interpret it (see `docs/experiment_plan.md` and `docs/milestone1_implementation_plan.md`). Milestone 3 will define active baseline metrics (e.g. BERTScore, NLI).
 
 The initial `samples.jsonl` file is intentionally small and illustrative. It is not a validated benchmark.
+
+## Human pilot annotations
+
+Primary labels for the **`pilot_30.jsonl`** pilot study live in **`annotations/annotations.jsonl`**. Line count and `id`s match the pilot corpus (30 rows covering all pilot IDs).
+
+For task mix and field semantics, follow [`experiment_plan.md`](../docs/experiment_plan.md).
