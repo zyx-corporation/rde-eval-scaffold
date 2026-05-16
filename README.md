@@ -108,7 +108,7 @@ python scripts/run_baselines.py \
   --bertscore
 ```
 
-**Phase 3 (optional):** NLI via `pip install -e '.[baseline-nli]'` plus PyTorch for your platform; then `--nli`, `--nli-model`, **`--nli-max-length`**, and `--nli-batch-size`:
+**Phase 3 (implemented; install optional):** NLI via `pip install -e '.[baseline-nli]'` plus PyTorch for your platform; then `--nli`, `--nli-model`, **`--nli-max-length`**, and `--nli-batch-size` (completion checklist in [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md)):
 
 ```bash
 python scripts/run_baselines.py \

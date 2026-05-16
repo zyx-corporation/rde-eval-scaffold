@@ -6,7 +6,33 @@ import importlib.util
 
 import pytest
 
-from rde_eval.nli_m3 import compute_nli_batch
+from rde_eval.nli_m3 import compute_nli_batch, nli_pair_exceeds_tokenizer_budget
+
+
+def test_nli_pair_exceeds_tokenizer_budget_exactly_max_not_truncated() -> None:
+    def fake_tok(
+        src: str,
+        out: str,
+        truncation: bool = False,
+        add_special_tokens: bool = True,  # noqa: ARG001
+    ) -> dict[str, list[int]]:
+        assert not truncation
+        return {"input_ids": list(range(10))}
+
+    assert not nli_pair_exceeds_tokenizer_budget(fake_tok, "a", "b", max_length=10)
+
+
+def test_nli_pair_exceeds_tokenizer_budget_one_over() -> None:
+    def fake_tok(
+        src: str,
+        out: str,
+        truncation: bool = False,
+        add_special_tokens: bool = True,  # noqa: ARG001
+    ) -> dict[str, list[int]]:
+        assert not truncation
+        return {"input_ids": list(range(11))}
+
+    assert nli_pair_exceeds_tokenizer_budget(fake_tok, "a", "b", max_length=10)
 
 
 def test_compute_nli_batch_length_mismatch() -> None:

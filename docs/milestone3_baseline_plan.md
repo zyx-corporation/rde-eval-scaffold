@@ -104,7 +104,7 @@ Batch scoring is used internally (one model load for all lines). First run may d
 | **Factuality / claim checks** | Often API or task-specific; define I/O in a follow-on doc before coding. |
 | **LLM-as-judge** | Align with existing `run_prompt_eval` provenance patterns; separate from `bert-score` to avoid double-counting cost. |
 
-## Phase 3 — NLI (optional, implemented)
+## Phase 3 — NLI (optional dependency; implementation **complete**)
 
 ### Role
 
@@ -188,6 +188,16 @@ python scripts/run_baselines.py \
 ```
 
 Combine with **`--bertscore`** when `[baseline]` is also installed.
+
+### Phase 3 exit criteria (all satisfied)
+
+- [x] `m3.nli` subtree on disk matches the schema (`label`, `scores`, `model_id`, **`truncated`**, premise/hypothesis sentinels).
+- [x] `m3.version` is **`"3"`** whenever **`m3.nli`** is present (BERTScore optional).
+- [x] CLI **`--nli`**, **`--nli-model`**, **`--nli-batch-size`**, **`--nli-max-length`** wired in `scripts/run_baselines.py`.
+- [x] **`truncated`** is derived from tokenizer length **without truncation** versus **`max_length`** (truncation still applies at inference).
+- [x] Tests cover merge/versioning via mocks; optional stack remains off the default **`[dev]`** CI install.
+
+Future work (explicitly **out of Phase 3**): factuality / LLM-as-a-judge rows in the plan’s “future extensions” table.
 
 ## CLI (summary)
 

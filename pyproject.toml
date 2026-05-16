@@ -24,7 +24,7 @@ dev = [
 baseline = [
   "bert-score>=0.3.13",
 ]
-# NLI baseline stack (planned implementation) — transformers pulls torch-like deps as needed
+# NLI baseline stack — transformers pulls torch-like deps as needed (see Milestone 3 Phase 3)
 baseline-nli = [
   "transformers>=4.40.0",
 ]

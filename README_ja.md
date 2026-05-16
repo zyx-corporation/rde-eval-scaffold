@@ -80,13 +80,16 @@ python scripts/run_baselines.py --input data/samples.jsonl --output results/samp
 python scripts/run_baselines.py --input data/samples.jsonl --output results/samples_with_m3.jsonl
 ```
 
-**フェーズ3（任意）:** `python -m pip install -e '.[baseline-nli]'` と PyTorch を入れたうえで、`--nli`、`--nli-model`（既定: `facebook/roberta-large-mnli`）、`--nli-batch-size`、`--nli-max-length`（既定: 512）。`--bertscore` と併用可。
+**フェーズ3（実装完了・ラン時の依存のみ任意）:** `python -m pip install -e '.[baseline-nli]'` と PyTorch を入れたうえで、`--nli`、`--nli-model`（既定: `facebook/roberta-large-mnli`）、`--nli-batch-size`、`--nli-max-length`（既定: 512）。`--bertscore` と併用可。完了条件は [`docs/milestone3_baseline_plan.md`](docs/milestone3_baseline_plan.md) の Phase 3 節を参照。
 
 ```bash
 python scripts/run_baselines.py \
   --input data/samples.jsonl \
   --output results/samples_with_m3.jsonl \
-  --nli
+  --nli \
+  --nli-model facebook/roberta-large-mnli \
+  --nli-batch-size 8 \
+  --nli-max-length 512
 ```
 
 英語以外のソース／出力のみのパイロットでは、`--nli-model` に**多言語向けチェックポイント**を指定してください。`m3.nli.scores` のクラス名はモデル依存なので、再現報告には **`model_id`** を必ず載せます。
