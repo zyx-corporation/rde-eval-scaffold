@@ -124,7 +124,7 @@ Use **`--nli-model`** with a multilingual checkpoint when the pilot rows are not
 
 BERTScore + NLI can be combined (`--bertscore` and `--nli` together).
 
-**Notebook:** [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb) — baselines vs `human_annotation`; optional env **`M3_JSONL`** selects the JSONL path. NLI rows include **`m3.nli.truncated`** when the source–output pair exceeded **`--nli-max-length`** tokens.
+**Notebook:** [`notebooks/m3_lexical_vs_human.ipynb`](notebooks/m3_lexical_vs_human.ipynb) — baselines vs `human_annotation`; optional **`M3_JSONL`** selects the JSONL path. Offline smoke data: **`data/fixtures/m3_nli_notebook_smoke.jsonl`** (three rows with `m3.nli.truncated`). **`m3.nli.truncated`** is true when the source–output pair exceeded **`--nli-max-length`** tokens after tokenizer fusion.
 
 (`PYTHONPATH=.` or `pip install -e '.[dev]'` required so `rde_eval` imports resolve.)
 
@@ -150,6 +150,8 @@ rde-eval-scaffold/
   data/
     samples.jsonl
     README.md
+    fixtures/
+      m3_nli_notebook_smoke.jsonl
   notebooks/
     m3_lexical_vs_human.ipynb
   rde_eval/
