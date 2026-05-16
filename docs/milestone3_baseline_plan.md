@@ -4,7 +4,7 @@
 
 Milestone 3 compares RDE-style judgments with lighter-weight signals recorded on each sample under `baseline_scores` (see [`experiment_plan.md`](experiment_plan.md) and [`milestone1_implementation_plan.md`](milestone1_implementation_plan.md)).
 
-This document describes **phase 1** (lexical, always-on), **phase 2** (optional BERTScore), and **phase 3** (planned NLI), plus how metrics appear on disk.
+This document describes **phase 1** (lexical, always-on), **phase 2** (optional BERTScore), and **phase 3** (optional NLI), plus how metrics appear on disk.
 
 ## Optional dependencies (`[baseline]`, `[baseline-nli]`)
 
@@ -16,7 +16,7 @@ Install for local or notebook experiments:
 python -m pip install -e '.[dev,baseline]'
 ```
 
-For the planned NLI stack (phase 3), add **`[baseline-nli]`** (`transformers`; PyTorch as required by your platform).
+For the NLI stack (phase 3), add **`[baseline-nli]`** (`transformers`; PyTorch as required by your platform).
 
 ```bash
 python -m pip install -e '.[dev,baseline,baseline-nli]'
@@ -151,7 +151,8 @@ Omit **`[baseline]`** if BERTScore is not needed. Pin `transformers` / `torch` /
         "entailment": 0.12,
         "neutral": 0.55,
         "contradiction": 0.33
-      }
+      },
+      "truncated": false
     }
   }
 }
@@ -161,12 +162,14 @@ Omit **`[baseline]`** if BERTScore is not needed. Pin `transformers` / `torch` /
 - **`scores`**: softmax probabilities keyed by normalized class name; keys must stay stable for a given **`model_id`**.
 - **`model_id`**: Hugging Face hub id or local path string used for reproducibility.
 
+- **`truncated`**: `true` when the tokenized source–output pair was longer than **`--nli-max-length`** (inference still uses truncation).
+
 **Version rule:** set **`m3.version` to `"3"`** whenever **`m3.nli`** is written, even if BERTScore is omitted (lexical + NLI only).
 
 ### Operational notes
 
 1. **Batching:** the model and tokenizer load **once**; use `--nli-batch-size` to tune memory.
-2. **Truncation:** tokenizer uses **`--nli-max-length`** (default 512) with truncation; shorten for speed, lengthen only if vocabulary and VRAM allow.
+2. **Truncation:** tokenizer uses **`--nli-max-length`** (default 512) with truncation; each row records **`m3.nli.truncated`** when the full pair would have exceeded that budget.
 3. **Multilingual pilots:** pick a multilingual NLI checkpoint and pass it via **`--nli-model`**, or filter rows by language.
 4. **First run:** Hugging Face may download weights for **`--nli-model`** (default `facebook/roberta-large-mnli`).
 

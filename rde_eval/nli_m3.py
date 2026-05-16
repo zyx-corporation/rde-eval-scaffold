@@ -19,8 +19,9 @@ def compute_nli_batch(
 ) -> list[dict[str, Any]]:
     """Return one dict per pair (premise=`source`, hypothesis=`output`).
 
-    Each dict matches the planned ``m3.nli`` subtree (see docs/milestone3_baseline_plan.md).
-    Requires ``torch``, ``torchvision`` (often implicit), and ``transformers``.
+    Each dict matches the ``m3.nli`` subtree (see docs/milestone3_baseline_plan.md).
+    ``truncated`` is true when the unpadded source–output pair exceeded ``max_length``
+    tokens before truncation. Requires ``torch`` and ``transformers``.
     """
 
     if len(sources) != len(outputs):
@@ -49,6 +50,17 @@ def compute_nli_batch(
         for start in range(0, len(sources), batch_size):
             batch_sources = sources[start : start + batch_size]
             batch_outputs = outputs[start : start + batch_size]
+
+            truncated_flags: list[bool] = []
+            for s_pair, o_pair in zip(batch_sources, batch_outputs, strict=True):
+                enc_no_trunc = tokenizer(
+                    s_pair,
+                    o_pair,
+                    truncation=False,
+                    add_special_tokens=True,
+                )
+                n_ids = len(enc_no_trunc["input_ids"])
+                truncated_flags.append(n_ids > max_length)
 
             encoded = tokenizer(
                 batch_sources,
@@ -82,6 +94,7 @@ def compute_nli_batch(
                         "hypothesis": "output",
                         "label": label_key,
                         "scores": scores,
+                        "truncated": bool(truncated_flags[i]),
                     }
                 )
 

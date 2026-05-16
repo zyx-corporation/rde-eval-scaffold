@@ -155,6 +155,7 @@ def test_run_baselines_nli_with_mocked_batch(
                 "hypothesis": "output",
                 "label": "neutral",
                 "scores": {"neutral": 1.0, "contradiction": 0.0, "entailment": 0.0},
+                "truncated": False,
             }
             for _ in sources
         ]
@@ -193,3 +194,4 @@ def test_run_baselines_nli_with_mocked_batch(
     row = json.loads(out.read_text(encoding="utf-8").strip().splitlines()[0])
     assert row["baseline_scores"]["m3"]["version"] == "3"
     assert row["baseline_scores"]["m3"]["nli"]["label"] == "neutral"
+    assert row["baseline_scores"]["m3"]["nli"]["truncated"] is False
