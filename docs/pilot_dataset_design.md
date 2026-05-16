@@ -16,7 +16,7 @@ The dataset is not a validated benchmark.
 
 ## Dataset Structure
 
-The dataset contains 30 records.
+The dataset contains 30 records. **Tracked file:** **[`data/pilot_30.jsonl`](../data/pilot_30.jsonl)**. Authoritative adjudicated labels reside separately in **`data/annotations/annotations.jsonl`** ([`annotate_pilot.py`](../scripts/annotate_pilot.py) conventions); **`merge_pilot_human_labels.py`** overlays them before baseline runs ([`docs/paper_preparation.md`](paper_preparation.md)).
 
 | Task | Count |
 |---|---:|

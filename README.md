@@ -153,7 +153,10 @@ rde-eval-scaffold/
     pilot_30.jsonl
     README.md
     annotations/
+      README.md
       annotations.jsonl
+      pilot_30_reference_placeholder.jsonl
+      pilot_30_deepseek.jsonl
     fixtures/
       m3_nli_notebook_smoke.jsonl
   notebooks/

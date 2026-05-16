@@ -14,6 +14,10 @@ This is not intended to validate RDE at scale. It is intended to test the usabil
 | Rewriting | 10 | intent change, hypothesis-to-assertion drift, value simplification |
 | Specification Conversion | 10 | theoretical reduction, responsibility shift, institutional implication loss |
 
+### Implementation status (pilot corpus)
+
+[`data/pilot_30.jsonl`](../data/pilot_30.jsonl) realizes the drafted 30-sample design (10 summarization / 10 rewriting / 10 specification conversion). Primary human pilot labels keyed by **`id`** are tracked in **[`data/annotations/annotations.jsonl`](../data/annotations/annotations.jsonl)**. The corpus remains **pilot / feasibility** usage only — not an inter‑annotator–validated benchmark (see Notes below).
+
 ## Per-sample Fields
 
 Required fields:

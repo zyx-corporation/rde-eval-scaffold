@@ -14,6 +14,10 @@ pilot studyは、RDE labels と risk flags をsource-output meaning changesに�
 | Rewriting | 10 | intent change, hypothesis-to-assertion drift, value simplification |
 | Specification Conversion | 10 | theoretical reduction, responsibility shift, institutional implication loss |
 
+### 実装状況（パイロットコーパス）
+
+[`data/pilot_30.jsonl`](../data/pilot_30.jsonl) が上記 30 件設計を実データ化している（各タスク 10 件）。確定人手ラベルは **`id`** 単位で [`data/annotations/annotations.jsonl`](../data/annotations/annotations.jsonl) に蓄積する。複数 Annotator での検証済みベンチマークではなく、パイロット用途に限定すること（末尾 Notes 参照）。
+
 ## サンプルごとのフィールド
 
 必須フィールド:

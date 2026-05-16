@@ -16,7 +16,7 @@
 
 ## Dataset 構成
 
-30 records を含みます。
+[`data/pilot_30.jsonl`](../data/pilot_30.jsonl) が 30 records を収録。**確定人手ラベル**は **`data/annotations/annotations.jsonl`** に **`id`** 単位で格納（[`annotate_pilot.py`](../scripts/annotate_pilot.py)。ベースライン前には [`merge_pilot_human_labels.py`](../scripts/merge_pilot_human_labels.py) でマージ、[論文準備メモ](paper_preparation.md) 参照）。
 
 | Task | Count |
 |---|---:|

@@ -26,6 +26,16 @@ python scripts/compare_annotations.py \
   --output results/annotation_comparison_deepseek.json
 ```
 
+Smoke-only tooling (**`reference_placeholder: true`** in `pilot_30_reference_placeholder.jsonl` — **not** adjudicated gold):
+
+```bash
+python scripts/compare_annotations.py \
+  --reference data/annotations/pilot_30_reference_placeholder.jsonl \
+  --candidate data/annotations/pilot_30_deepseek.jsonl \
+  --source data/pilot_30.jsonl \
+  --output /tmp/rde_placeholder_compare_smoke.json
+```
+
 ## Input Roles
 
 ### Reference annotation
@@ -42,6 +52,8 @@ Supported fields:
 - `explanation_ja`
 
 The reference annotation is not automatically treated as absolute truth.
+
+**Label agreement** compares **`human_annotation`** (reference row) against **`llm_annotation`** (candidate row). Absent keys compare as mismatches (**`null`** in disagreement rows).
 
 ### Candidate annotation
 
@@ -67,6 +79,15 @@ If an ID exists in one file but not the other, the comparison result must record
 - missing candidate record
 
 Candidate rows with `normalization_status: failed` (API or normalization failures from `run_prompt_eval`) are listed under `candidate_normalization_failed` and excluded from label/criticality/risk-flag agreement denominators. Legacy candidate files without `normalization_status` are treated as normalized.
+
+## Source corpus coverage (optional `--source`)
+
+When **`--source`** points at the pilot JSONL (**`data/pilot_30.jsonl`**), emitted JSON includes **`source_id_coverage`** with:
+
+- **`missing_in_source`**: IDs present in the reference/candidate union but absent from **`--source`**
+- **`extra_in_source_only`**: IDs appearing only in **`--source`** (normally empty)
+
+Omit **`--source`** entirely when this bookkeeping is unnecessary.
 
 ## Aggregate Metrics
 
@@ -129,20 +150,29 @@ Example:
 
 ## Output JSON Schema
 
+The implementation attaches bookkeeping fields (**`total`**, **`comparable`**, **`missing_*`**, **`candidate_normalization_failed`**) in addition to the aggregate metrics illustrated below:
+
 ```json
 {
   "total": 30,
+  "comparable": 30,
   "label_agreement": 0.73,
   "criticality_agreement": 0.80,
   "risk_flag_exact_agreement": 0.60,
   "risk_flag_precision": 0.75,
   "risk_flag_recall": 0.70,
   "risk_flag_f1": 0.72,
-  "disagreements": []
+  "disagreements": [],
+  "source_id_coverage": {
+    "missing_in_source": [],
+    "extra_in_source_only": []
+  }
 }
 ```
 
-## Provenance Preservation
+When **`--source`** is omitted, **`source_id_coverage`** is omitted entirely.
+
+## Provenance preservation
 
 The comparison tool must preserve provenance separation.
 
