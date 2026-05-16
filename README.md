@@ -146,6 +146,7 @@ rde-eval-scaffold/
     experiment_plan.md
     milestone1_implementation_plan.md
     milestone3_baseline_plan.md
+    paper_preparation.md
     repository_operation.md
   data/
     samples.jsonl
@@ -232,6 +233,10 @@ python scripts/run_prompt_eval.py \
 ```
 
 The evaluation CLI exits with status **1** on invalid JSONL, schema errors, or I/O failures; **0** on success.
+
+## Publication / paper authoring
+
+Pilot design ↔ claims boundary, reproducible command blocks, BibTeX starters: [`docs/paper_preparation.md`](docs/paper_preparation.md).
 
 ## Development
 

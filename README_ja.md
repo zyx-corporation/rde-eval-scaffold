@@ -131,6 +131,10 @@ python scripts/run_prompt_eval.py \
   --annotation-run-id local-stub-1
 ```
 
+## 論文・発表準備
+
+パイロット設計、主張の境界、再現コマンド、参考文献のひな型: [`docs/paper_preparation.md`](docs/paper_preparation.md)。
+
 ## 開発
 
 ```bash
