@@ -38,6 +38,10 @@ scripts/
 
 `compare_annotations.py` と `export_results.py` は `rde_eval` を import しません（ルートでそのまま `python scripts/...` でも実行可）。`run_baselines.py` は `rde_eval.baselines` を使うため、editable install または `PYTHONPATH=.` が必要です。
 
+## データ（パイロット）
+
+人手によるパイロット注釈は [`data/annotations/annotations.jsonl`](data/annotations/annotations.jsonl) に 30 行（全 `id` が [`data/pilot_30.jsonl`](data/pilot_30.jsonl) と対応）。タスクはそれぞれ 10 件ずつ — 要約・リライト・仕様変換 —（[`docs/experiment_plan.md`](docs/experiment_plan.md)）。
+
 ## Milestone 1（現在）
 
 実装スコープと完了条件は [`docs/milestone1_implementation_plan.md`](docs/milestone1_implementation_plan.md) を参照してください。

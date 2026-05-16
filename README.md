@@ -149,7 +149,10 @@ rde-eval-scaffold/
     repository_operation.md
   data/
     samples.jsonl
+    pilot_30.jsonl
     README.md
+    annotations/
+      annotations.jsonl
     fixtures/
       m3_nli_notebook_smoke.jsonl
   notebooks/
@@ -184,7 +187,9 @@ rde-eval-scaffold/
 
 Each sample is represented as one JSON object per line.
 
-The current `data/samples.jsonl` file contains minimal dry-run examples for schema and pipeline validation. The planned pilot dataset consists of 30 source-output pairs.
+The current `data/samples.jsonl` file contains minimal dry-run examples for schema and pipeline validation.
+
+The **`data/pilot_30.jsonl`** file is the pilot corpus (30 paired samples). Primary human annotations for those IDs are recorded one-per-line in **`data/annotations/annotations.jsonl`**, aligned with [`docs/experiment_plan.md`](docs/experiment_plan.md) (10 summarization / 10 rewriting / 10 specification conversion).
 
 ## Invoking repository scripts
 
