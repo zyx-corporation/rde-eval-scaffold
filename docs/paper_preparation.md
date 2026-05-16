@@ -126,3 +126,27 @@ Populate venue pages / DOIs before submission; keep software versions mirrored i
 - [ ] Decide whether bilingual fields (`*_ja`) enter analysis scope; cite if excluded.
 - [ ] Register limitations: pilot power, taxonomy scope, evaluator stack scope.
 - [ ] IRB / human-subjects wording if annotations involve sensitive domains (risk contexts enumerated per row).
+
+## 10. jXiv-oriented manuscript checklist (GitHub **`#2`**)
+
+RDE論文本体の TeX / Word は**本リポ外**で管理されていますが、改版時は次で Issue のスコープと整合させます。
+
+### Related Work & citations
+
+- [ ] Related Work の各項に**本文引用**を付ける（会誌スタイルに合わせる）。
+- [ ] 「既存評価指標」の批判と、「Δ-M 受容可否をラベル＋フラグで監査する RDE」の立場を峻別する（詳細語彙は **`concept.md`** / **`annotation_guide.md`** と一致させる）。
+
+### 構成・重複削除
+
+- [ ] **比較節（metric comparison）**と**問題提起（missing layer）**の重複を削る。
+- [ ] Problem 節では、字面類似や単一要約指標だけでは覆い切れない**制度的・責任・不確実性**の監査必要性を論じる。
+
+### パイロット記述の事実確認
+
+- [ ] **実施済み**の人手ラベルを書く場合は、このリポの **`data/annotations/annotations.jsonl`** と **`merge_pilot_human_labels.py`** での証跡・コミットを指す（「計画のみ」なら明示）。
+- [ ] Appendix では GitHub README の転載は避け、**`annotation_guide.md`** / **`experiment_plan.md`** を主付録にする。
+
+### 限界（必須）
+
+- [ ] 現状レポでは**単一または限定された Annotator のパイロット**であり、**一般化された検証**ではないと明記する（なければ多評者kappa等は主張しない）。
+- [ ] **`pilot_30_reference_placeholder.jsonl`** を触れるときは「スモーク用・非ゴールド」と明記する。

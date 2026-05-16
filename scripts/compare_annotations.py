@@ -22,10 +22,12 @@ def index_by_id(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 
 def label_of(record: dict[str, Any], *, role: str) -> str | None:
+    """Primary label field per ``docs/annotation_comparison_tool_spec.md``."""
+
     if role == "reference":
-        return record.get("human_annotation") or record.get("llm_annotation")
+        return record.get("human_annotation")
     if role == "candidate":
-        return record.get("llm_annotation") or record.get("human_annotation")
+        return record.get("llm_annotation")
     raise ValueError(f"unknown role: {role}")
 
 
@@ -56,6 +58,8 @@ def f1_score(precision: float, recall: float) -> float:
 def compare_annotations(
     reference_records: list[dict[str, Any]],
     candidate_records: list[dict[str, Any]],
+    *,
+    source_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     reference = index_by_id(reference_records)
     candidate = index_by_id(candidate_records)
@@ -123,7 +127,7 @@ def compare_annotations(
     precision = safe_div(total_overlap, total_candidate_flags)
     recall = safe_div(total_overlap, total_reference_flags)
 
-    return {
+    out: dict[str, Any] = {
         "total": len(all_ids),
         "comparable": comparable,
         "missing_reference": missing_reference,
@@ -137,6 +141,13 @@ def compare_annotations(
         "risk_flag_f1": f1_score(precision, recall),
         "disagreements": disagreements,
     }
+    if source_ids is not None:
+        compared = set(reference) | set(candidate)
+        out["source_id_coverage"] = {
+            "missing_in_source": sorted(compared - source_ids),
+            "extra_in_source_only": sorted(source_ids - compared),
+        }
+    return out
 
 
 def write_json(path: Path, data: dict[str, Any]) -> None:
@@ -176,6 +187,12 @@ def format_comparison_summary(result: dict[str, Any]) -> str:
         lines.append(f"  Missing candidate:              {len(missing_cand)}")
     if failed:
         lines.append(f"  Candidate normalization failed: {len(failed)}")
+    cov = result.get("source_id_coverage")
+    if isinstance(cov, dict):
+        miss = cov.get("missing_in_source") or []
+        extra = cov.get("extra_in_source_only") or []
+        if miss or extra:
+            lines.append(f"  Source ID mismatches — missing: {len(miss)}, extra: {len(extra)}")
     return "\n".join(lines)
 
 
@@ -186,7 +203,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--source",
         required=False,
-        help="Reserved for future source-aware comparison.",
+        help=(
+            "Optional pilot/source JSONL; when set, report which compared ids are missing from "
+            "that file under source_id_coverage in the output JSON."
+        ),
     )
     parser.add_argument("--output", required=True)
     parser.add_argument(
@@ -199,10 +219,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    result = compare_annotations(
-        load_jsonl(Path(args.reference)),
-        load_jsonl(Path(args.candidate)),
-    )
+    ref = load_jsonl(Path(args.reference))
+    cand = load_jsonl(Path(args.candidate))
+    source_ids: set[str] | None = None
+    if args.source:
+        source_ids = {str(r["id"]) for r in load_jsonl(Path(args.source))}
+    result = compare_annotations(ref, cand, source_ids=source_ids)
     write_json(Path(args.output), result)
     print(f"Compared {result['comparable']} records -> {args.output}")
     if args.summary:

@@ -131,20 +131,32 @@ CI targets Python 3.12 only.
 
 ## Manual verification checklist (pre–Milestone 2 gate)
 
-GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) tracks a human gate before Milestone 2 work. From the repository root, either install the project in editable mode (`python -m pip install -e .[dev]`) **or** prefix every `python scripts/…` command below with `PYTHONPATH=.` so that `rde_eval` imports succeed.
+GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) tracks a human gate before Milestone 2 work. From the repository root:
+
+1. **Either** install the project in editable mode once per environment:
+
+   ```bash
+   python -m pip install -e '.[dev]'
+   ```
+
+2. **Or** prefix **`PYTHONPATH=.`** on every **`python`** line below that invokes a script importing **`rde_eval`** (**`annotate_pilot.py`**, **`run_eval.py`**, **`run_prompt_eval.py`**, …).
+
+Without one of those, **`ModuleNotFoundError: No module named 'rde_eval'`** is expected for those scripts (**GitHub `#54`**).
 
 ```bash
 ruff check .
 ruff format --check .
 pytest
-python scripts/annotate_pilot.py --help
-python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
-python scripts/run_prompt_eval.py \
+PYTHONPATH=. python scripts/annotate_pilot.py --help
+PYTHONPATH=. python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
+PYTHONPATH=. python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \
   --output /tmp/prompt_eval_stub.jsonl \
   --annotation-run-id manual-gate
 python scripts/export_results.py --input /tmp/rde_results.jsonl --format csv --output /tmp/rde_results.csv
 ```
+
+If you used **`pip install -e '.[dev]'`**, drop the **`PYTHONPATH=.` prefixes** above.
 
 `export_results.py` does not require `rde_eval`, but the checklist keeps one consistent environment.
 

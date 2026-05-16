@@ -110,20 +110,27 @@ CI は Python 3.12 のみを対象とします。
 
 ## 手動検証チェックリスト（Milestone 2 着手前ゲート）
 
-GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) で、Milestone 2 に入る前の人手確認を扱います。リポジトリルートで、**editable install**（`python -m pip install -e .[dev]`）を済ませるか、次の `python scripts/…` には **`PYTHONPATH=.`** を付けて `rde_eval` が解決するようにしてください。
+GitHub Issue [#52](https://github.com/zyx-corporation/rde-eval-scaffold/issues/52) で、Milestone 2 に入る前の人手確認を扱います。リポジトリルートで、次の**いずれか**を済ませてください。
+
+1. **editable install**（環境ごとに一度でも可）：`python -m pip install -e '.[dev]'`
+2. **または** 下記のように **`PYTHONPATH=.`** を、**`rde_eval`** を import するスクリプト（例：`annotate_pilot.py`、`run_eval.py`、`run_prompt_eval.py`）の **`python`** 呼び出し前方に付ける。
+
+どちらも無い状態では、これらのスクリプトで **`ModuleNotFoundError: No module named 'rde_eval'`** が出るのが正常です（関連: GitHub `#54`）。
 
 ```bash
 ruff check .
 ruff format --check .
 pytest
-python scripts/annotate_pilot.py --help
-python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
-python scripts/run_prompt_eval.py \
+PYTHONPATH=. python scripts/annotate_pilot.py --help
+PYTHONPATH=. python scripts/run_eval.py --input data/samples.jsonl --output /tmp/rde_results.jsonl
+PYTHONPATH=. python scripts/run_prompt_eval.py \
   --input data/samples.jsonl \
   --output /tmp/prompt_eval_stub.jsonl \
   --annotation-run-id manual-gate
 python scripts/export_results.py --input /tmp/rde_results.jsonl --format csv --output /tmp/rde_results.csv
 ```
+
+既に **`pip install -e '.[dev]'`** 済みなら、上の **`PYTHONPATH=.` は省略できます**。
 
 `export_results.py` 単体は `rde_eval` に依存しませんが、同一環境で揃える前提のチェックリストです。
 
