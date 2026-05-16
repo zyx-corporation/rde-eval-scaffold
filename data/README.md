@@ -41,4 +41,4 @@ python scripts/merge_pilot_human_labels.py \
   --output results/pilot_30_with_human.jsonl
 ```
 
-Use the merged JSONL as input when you want baselines analyzed against the **`human_annotation`** values from **`annotate_pilot.py`** (`run_baselines.py`, notebooks via **`M3_JSONL`**, etc.).
+Use the merged JSONL as input when you want baselines analyzed against the **`human_annotation`** values from **`annotate_pilot.py`** (`run_baselines.py`, notebooks via **`M3_JSONL`** or the default **`results/pilot_30_with_m3.jsonl`** when you write baselines there, etc.).

@@ -203,6 +203,8 @@ Future work (explicitly **out of Phase 3**): factuality / LLM-as-a-judge rows in
 
 [`scripts/run_baselines.py`](../scripts/run_baselines.py) reads JSONL samples, merges **lexical** baselines, optionally **`--bertscore`** (requires `[baseline]`), and optionally **`--nli`** (requires `[baseline-nli]` + PyTorch). Extra per-line keys (for example `source_ja`) are preserved.
 
+When running baselines vs **authoritative** pilot human labels from [`annotate_pilot.py`](../scripts/annotate_pilot.py): run [`merge_pilot_human_labels.py`](../scripts/merge_pilot_human_labels.py) first, then point **`--input`** at **`results/pilot_30_with_human.jsonl`**. Typical notebook default output is **`results/pilot_30_with_m3.jsonl`**.
+
 ## Related work (historical)
 
 Phase 1 excluded neural baselines; phase 2 adds BERTScore behind `[baseline]`; phase 3 adds NLI behind `[baseline-nli]` with `m3.nli` on disk.
