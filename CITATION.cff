@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software or pilot scaffold, please cite it as below."
+title: "rde-eval-scaffold: Experimental scaffold for Resonant Deviation Evaluator pilot studies"
+authors:
+  - family-names: "Kano"
+    given-names: "Tomoyuki"
+    email: "tomyuk@zyxcorp.jp"
+    affiliation: "ZYX Corp."
+repository-code: "https://github.com/zyx-corporation/rde-eval-scaffold"
+license: "Apache-2.0"
+version: "0.1.0"
+date-released: "2026-05-19"
+abstract: >-
+  Experimental scaffold for evaluating Resonant Deviation Evaluator (RDE)
+  taxonomy, risk flags, criticality, prompt-based candidate annotations,
+  baseline metrics, and pilot source-output pairs. This repository is not a
+  production RDE engine and does not claim benchmark-scale validation.
+keywords:
+  - Resonant Deviation Evaluator
+  - semantic drift
+  - generative AI evaluation
+  - AI auditing
+  - annotation scaffold
